@@ -16,7 +16,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
         { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
     private static readonly HashSet<string> ReadIntents = ["channel", "video", "playlists", "playlist-items", "comments", "replies", "captions", "broadcast", "stream", "analytics", "members", "members-next", "membership-levels"];
     public override string AgentId => YouTubeManagerProfile.Id;
-    public override string Version => "0.1.0";
+    public override string Version => "0.2.0";
 
     protected override async Task<AgentWorkResult> ExecuteCapabilityCoreAsync(AgentCapabilityRequest request,
         AgentRuntimeContext context, CancellationToken ct)
@@ -329,9 +329,9 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
         var selection = new AgentLlmSelection(provider, Settings.GetGuid("llmProviderId") == provider ? Settings.GetString("llmModel") : null,
             new(Guid.Parse(input.ConversationId), input.ChatTurnId == Guid.Empty ? null : input.ChatTurnId, "youtube-manager"));
         using var client = modelFactory is null ? context.CreateChatClient(selection) : await modelFactory.CreateChatClientAsync(selection, ct);
-        var result = await client.GetResponseAsync([new ChatMessage(ChatRole.System, YouTubeManagerProfile.Instructions + "\n" + instruction),
-            new ChatMessage(ChatRole.User, data)], new ChatOptions
-            { MaxOutputTokens = 3000, Temperature = 0.2f, Reasoning = new() { Output = ReasoningOutput.None, Effort = ReasoningEffort.Low } }, ct);
+        var result = await context.Platform.Calendar.GetResponseAsync(client, [new ChatMessage(ChatRole.System, YouTubeManagerProfile.Instructions + "\n" + instruction),
+            new ChatMessage(ChatRole.User, data)], await context.Platform.Calendar.WithToolsAsync(new ChatOptions
+            { MaxOutputTokens = 3000, Temperature = 0.2f, Reasoning = new() { Output = ReasoningOutput.None, Effort = ReasoningEffort.Low } }, cancellationToken), ct);
         if (string.IsNullOrWhiteSpace(result.Text) || result.Text.Length > 16000 || result.FinishReason == ChatFinishReason.Length)
             throw new InvalidOperationException("The reasoning result was empty or incomplete.");
         return result.Text.Trim();

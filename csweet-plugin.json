@@ -10,7 +10,7 @@
   },
   "id": "com.csweet.agent.platform.youtube",
   "name": "YouTube Manager",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": {
     "id": "com.csweet",
     "name": "C-Sweet"
@@ -177,6 +177,11 @@
     }
   ],
   "requires": [
+    {"name": "work.calendar.read.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
+    {"name": "work.calendar.create.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
+    {"name": "work.calendar.update.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
+    {"name": "work.calendar.cancel.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
+    {"name": "work.calendar.schedule.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
     {
       "name": "youtube.api.member.list.v1",
       "dependency": "youtube",
@@ -371,7 +376,7 @@
     }
   ],
   "events": {
-    "subscribes": [
+    "subscribes": ["com.csweet.calendar.reminder-due.v1", 
       "com.csweet.agent.onboarded.v1",
       "com.csweet.connector.action.changed.v1",
       "com.csweet.plugin.setup.requested.v1",

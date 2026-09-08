@@ -10,13 +10,13 @@ public sealed class ManifestTests
     {
         var project = System.Xml.Linq.XDocument.Load(Path.Combine(RepositoryRoot(), "src", "CSweet.Agent.Platform.YouTube", "CSweet.Agent.Platform.YouTube.csproj"));
         Assert.Equal("CSweet.Agent.Platform.YouTube", project.Descendants("PackageId").Single().Value);
-        Assert.Equal("0.1.0", project.Descendants("Version").Single().Value);
+        Assert.Equal("0.2.0", project.Descendants("Version").Single().Value);
         Assert.Equal("C-Sweet", project.Descendants("Authors").Single().Value);
         var description = project.Descendants("Description").Single().Value;
         Assert.Contains("YouTube", description); Assert.DoesNotContain("Package Description", description);
         var dependencies = project.Descendants("PackageReference").ToDictionary(x => x.Attribute("Include")!.Value, x => x.Attribute("Version")!.Value);
         Assert.Equal("3.38.0", dependencies["CSweet.Agent.SDK"]);
-        Assert.Equal("0.1.0", dependencies["CSweet.Plugins.Platform.YouTube"]);
+        Assert.Equal("0.2.0", dependencies["CSweet.Plugins.Platform.YouTube"]);
         Assert.Empty(project.Descendants("ProjectReference"));
     }
 

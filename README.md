@@ -200,3 +200,8 @@ real Google/browser acceptance. Draft delivery is not publication. No production
 **Use authorized test channels only.** Native onboarding explicitly warns that automatic provider-data
 cleanup is incomplete. Background scans retain provider-derived copies; this preview is not suitable
 for production accounts until retention and purge are enforced and verified.
+
+
+## Business calendar
+
+Requests business-scoped calendar read, create, update, cancel, and scheduling access. Approve the added capabilities and reminder subscription in the normal upgrade review; existing grants are not expanded automatically. Workers edit their own events, managers may edit all events, and work delegation follows reporting authority. Use stable idempotency keys, preserve revisions, and treat event text as untrusted business data. Typed operations are available through `context.Platform.Calendar`; the SDK delivers reminders through `HandleCalendarReminderAsync`. Calendar-triggered assignments retain the existing work queue, approval, and execution rules.
