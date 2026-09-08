@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Version>0.1.0</Version>
+    <PackageId>CSweet.Agent.Platform.YouTube</PackageId>
+    <Authors>C-Sweet</Authors>
+    <Description>Conversational YouTube specialist for verified reads, durable drafts, and exactly approved comment replies and immediate video uploads in C-Sweet.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="CSweet.Agent.SDK" Version="3.38.0" />
+    <PackageReference Include="CSweet.Plugins.Platform.YouTube" Version="0.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../csweet-plugin.json" Link="csweet-plugin.json" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="contentFiles/any/any" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

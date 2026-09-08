@@ -1,0 +1,452 @@
+{
+  "$schema": "https://raw.githubusercontent.com/CrosswiredStudios/CSweetAgentSdk/main/schemas/csweet-plugin.v2.schema.json",
+  "manifestVersion": "2.0",
+  "kind": "agent",
+  "rolePolicy": {
+    "profile": "individual-contributor.v1",
+    "declaredRoleKeys": [
+      "general-specialist"
+    ]
+  },
+  "id": "com.csweet.agent.platform.youtube",
+  "name": "YouTube Manager",
+  "version": "0.1.0",
+  "publisher": {
+    "id": "com.csweet",
+    "name": "C-Sweet"
+  },
+  "runtime": {
+    "type": "dotnet-project",
+    "projectPath": "src/CSweet.Agent.Platform.YouTube/CSweet.Agent.Platform.YouTube.csproj",
+    "targetFramework": "net10.0",
+    "defaultActivationMode": "AlwaysOn",
+    "defaultTickFrequencySeconds": 300,
+    "supportsMultipleInstallations": true,
+    "maximumConcurrentJobs": 1
+  },
+  "protocol": {
+    "minimumVersion": "2.3",
+    "maximumVersion": "2.x"
+  },
+  "provides": [
+    {
+      "name": "agent.configuration.describe.v1",
+      "description": "Describe the company's approved reasoning configuration for scheduled YouTube reports.",
+      "inputSchema": { "type": "object", "additionalProperties": false },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false,
+        "required": ["agentId", "agentVersion", "schemaVersion", "fields", "settings"],
+        "properties": {
+          "agentId": { "type": "string", "const": "com.csweet.agent.platform.youtube" },
+          "agentVersion": { "type": "string", "const": "0.1.0" },
+          "schemaVersion": { "type": "string", "const": "1.0" },
+          "fields": {
+            "type": "array", "minItems": 2, "maxItems": 2,
+            "items": {
+              "type": "object", "additionalProperties": false, "required": ["key", "label", "type", "required"],
+              "properties": {
+                "key": { "type": "string", "enum": ["llmProviderId", "llmModel"] },
+                "label": { "type": "string", "maxLength": 80 },
+                "type": { "type": "string", "enum": ["llmProvider", "llmModel"] },
+                "required": { "type": "boolean", "const": true },
+                "description": { "type": ["string", "null"], "maxLength": 256 },
+                "placeholder": { "type": "null" }, "options": { "type": "null" },
+                "minimum": { "type": "null" }, "maximum": { "type": "null" }, "step": { "type": "null" },
+                "dependsOnFieldKey": { "type": ["string", "null"], "maxLength": 40 },
+                "lessThanFieldKey": { "type": "null" }, "visibleWhenFieldKey": { "type": "null" }, "visibleWhenValue": { "type": "null" }
+              }
+            }
+          },
+          "settings": {
+            "type": "object", "additionalProperties": false, "required": ["llmProviderId", "llmModel"],
+            "properties": { "llmProviderId": { "type": "string", "maxLength": 36 }, "llmModel": { "type": "string", "maxLength": 256 } }
+          }
+        }
+      },
+      "executionTimeoutSeconds": 30, "idempotency": "none", "riskClass": "standard"
+    },
+    {
+      "name": "agent.configuration.update.v1",
+      "description": "Update the approved reasoning configuration through native platform controls, not conversational preferences.",
+      "inputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["settings"],
+        "properties": { "settings": {
+          "type": "object", "additionalProperties": false,
+          "properties": { "llmProviderId": { "type": "string", "format": "uuid" }, "llmModel": { "type": "string", "minLength": 1, "maxLength": 256 } }
+        } }
+      },
+      "outputSchema": {
+        "type": "object", "additionalProperties": false, "required": ["succeeded", "message", "settings"],
+        "properties": {
+          "succeeded": { "type": "boolean" }, "message": { "type": ["string", "null"], "maxLength": 2000 },
+          "settings": {
+            "type": "object", "additionalProperties": false, "required": ["llmProviderId", "llmModel"],
+            "properties": { "llmProviderId": { "type": "string", "maxLength": 36 }, "llmModel": { "type": "string", "maxLength": 256 } }
+          }
+        }
+      },
+      "executionTimeoutSeconds": 30, "idempotency": "work-item", "riskClass": "standard"
+    },
+    {
+      "name": "assistant.converse.v1",
+      "description": "Discuss YouTube goals, read channel information, and prepare reports and drafts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "providerProfileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000
+          },
+          "context": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "messageId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "chatTurnId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "providerProfileId",
+          "conversationId",
+          "prompt",
+          "messageId"
+        ],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "response": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000
+          },
+          "proposedActions": {
+            "type": "array",
+            "maxItems": 0,
+            "items": {
+              "type": "object",
+              "additionalProperties": false
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "conversationId",
+          "response",
+          "proposedActions",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "executionTimeoutSeconds": 300,
+      "idempotency": "work-item",
+      "riskClass": "standard"
+    }
+  ],
+  "requires": [
+    {
+      "name": "youtube.api.member.list.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read bounded pages of current members only with independent membership consent, channel eligibility and host-verified response ownership."
+    },
+    {
+      "name": "youtube.api.membership-level.list.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read eligible channel membership level names; never infer prices, revenue or permission to change benefits."
+    },
+    {
+      "name": "agent.onboarding.complete.v1",
+      "scope": "organization",
+      "purpose": "Acknowledge the exact host onboarding event only after the channel, introduction and durable monitoring and reporting duties are saved."
+    },
+    {
+      "name": "platform.connector.action.request.v1",
+      "scope": "organization",
+      "purpose": "Prepare an exact comment reply or a saved source-bound upload for authoritative approval, never raw provider execution."
+    },
+    {
+      "name": "platform.connector.action.read.v1",
+      "scope": "organization",
+      "purpose": "Read durable reply and upload decisions, feedback and confirmed outcomes; recheck exact revision decisions before preparing a fresh approval."
+    },
+    {
+      "name": "platform.connector.action.cancel.v1",
+      "scope": "organization",
+      "purpose": "Cancel unstarted replies or prepared uploads when work is paused; never erase uncertain outcomes."
+    },
+    {
+      "name": "youtube.api.comment.read.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Verify the original comment before drafting a reply."
+    },
+    {
+      "name": "youtube.api.comment.reply.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Request a narrow, channel-bound reply through the host's exact approval boundary."
+    },
+    {
+      "name": "youtube.api.video.upload.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Prepare an immediate upload from conversationally confirmed metadata and an authorized video attachment, then require exact approval and durable result reconciliation."
+    },
+    {
+      "name": "youtube.api.video.metadata.update.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Prepare requested existing-video metadata edits from authenticated snapshots; require exact conditional approval and verify durable results without blind retries."
+    },
+    {
+      "name": "youtube.api.video-category.list.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Resolve the user's category name against YouTube's current assignable catalog before preparing an upload; never guess a category ID."
+    },
+    {
+      "name": "platform.llm.chat-stream.v1",
+      "scope": "organization",
+      "purpose": "Reason about verified conversations and persist or recover requested drafts."
+    },
+    {
+      "name": "communication.chat.read.v1",
+      "scope": "organization",
+      "purpose": "Reason about verified conversations and persist or recover requested drafts."
+    },
+    {
+      "name": "communication.message.send.v1",
+      "scope": "organization",
+      "purpose": "Deliver setup introductions, initial-sync results, daily change digests, scheduled official-metric reports, access-recovery notices and saved review batches to their bound conversations; never post external replies."
+    },
+    {
+      "name": "platform.user-action.suggest.v1",
+      "scope": "organization",
+      "purpose": "Reason about verified conversations and persist or recover requested drafts."
+    },
+    {
+      "name": "platform.agent-operating-state.read.v1",
+      "scope": "organization",
+      "purpose": "Read saved requests, drafts, channel-bound engagement inbox records, sharded comment evidence and resumable scan cursors."
+    },
+    {
+      "name": "platform.agent-operating-state.write.v1",
+      "scope": "organization",
+      "purpose": "Persist requests, full-inbox draft decisions, delivery batches and channel-bound comments with sharded evidence and page receipts before advancing requested work."
+    },
+    {
+      "name": "work.personal-todo.add.v1",
+      "scope": "organization",
+      "purpose": "Create requested draft work and one source-bound recurring engagement monitoring duty after validated onboarding."
+    },
+    {
+      "name": "work.personal-todo.read.v1",
+      "scope": "organization",
+      "purpose": "Locate this agent's paused requests without asking the user for internal work IDs."
+    },
+    {
+      "name": "work.personal-todo.requeue.v1",
+      "scope": "organization",
+      "purpose": "Resume only this agent's correlated work paused by its manager."
+    },
+    {
+      "name": "work.personal-todo.defer.v1",
+      "scope": "organization",
+      "purpose": "Schedule paused work, engagement page continuation and provider backoff without retaining a process or model wait."
+    },
+    {
+      "name": "work.personal-todo.claim.v1",
+      "scope": "organization",
+      "purpose": "Reason about verified conversations and persist or recover requested drafts."
+    },
+    {
+      "name": "work.personal-todo.complete.v1",
+      "scope": "organization",
+      "purpose": "Reason about verified conversations and persist or recover requested drafts."
+    },
+    {
+      "name": "work.personal-todo.block.v1",
+      "scope": "organization",
+      "purpose": "Reason about verified conversations and persist or recover requested drafts."
+    },
+    {
+      "name": "work.personal-todo.release.v1",
+      "scope": "organization",
+      "purpose": "Reason about verified conversations and persist or recover requested drafts."
+    },
+    {
+      "name": "youtube.api.channel.read.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "youtube.api.video.read.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "youtube.api.playlist.list.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "youtube.api.playlist-items.list.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "youtube.api.comment-threads.list.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "youtube.api.comment-replies.list.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read replies to a comment belonging to the confirmed channel."
+    },
+    {
+      "name": "youtube.api.caption.list.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "youtube.api.live-broadcast.read.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "youtube.api.live-stream.read.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "youtube.api.analytics.summary.v1",
+      "dependency": "youtube",
+      "scope": "organization",
+      "purpose": "Read the explicitly connected channel through the approved connector."
+    }
+  ],
+  "events": {
+    "subscribes": [
+      "com.csweet.agent.onboarded.v1",
+      "com.csweet.connector.action.changed.v1",
+      "com.csweet.plugin.setup.requested.v1",
+      "com.csweet.user.message.received.v1",
+      "com.csweet.work.personal-todo.available.v1"
+    ]
+  },
+  "configuration": [
+    { "key": "llmProviderId", "type": "provider", "label": "Reasoning service", "required": true, "secret": false },
+    { "key": "llmModel", "type": "model", "label": "Reasoning model", "required": true, "secret": false }
+  ],
+  "credentials": [],
+  "webAccess": {
+    "mode": "None",
+    "rules": []
+  },
+  "ui": [],
+  "catalog": {
+    "summary": "Conversational channel reads, scheduled engagement monitoring, draft reviews, approved comment replies and performance reports.",
+    "category": "Marketing",
+    "role": {
+      "key": "general-specialist",
+      "name": "YouTube Manager"
+    },
+    "license": {
+      "spdxId": "MIT"
+    },
+    "iconUrls": [],
+    "roleAliases": [],
+    "keywords": [
+      "YouTube",
+      "analytics",
+      "drafts"
+    ],
+    "documentationUrl": "README.md"
+  },
+  "dependencies": [
+    {
+      "id": "youtube",
+      "pluginId": "com.csweet.connector.youtube",
+      "publisherId": "com.csweet",
+      "minimumVersion": "0.1.0",
+      "maximumVersionExclusive": "0.2.0"
+    }
+  ],
+  "setup": {
+    "required": true,
+    "entryFlow": "onboard",
+    "assistance": {
+      "profile": "conversation.v1"
+    },
+    "flows": [
+      {
+        "id": "onboard",
+        "title": "Set up YouTube Manager",
+        "steps": [
+          {
+            "id": "protections",
+            "kind": "permission-summary",
+            "title": "YouTube goals and protections",
+            "description": "After activation, synchronize published comments and replies, check for changes every 15 minutes after each scan, send a daily change digest, and prepare weekly official-metric reports with suggestions in the setup conversation. You can pause work and change the report cadence to monthly. Reports preserve missing-data limitations and never authorize channel changes. Posting replies or uploading videos requires separate grants, consent and exact approval."
+          },
+          {
+            "id": "preview-limitations",
+            "kind": "permission-summary",
+            "title": "Preview build: use test channels only",
+            "description": "Automatic cleanup of stored YouTube data is not complete. Use authorized test channels only until retention, browser acceptance and real-provider verification are complete. Do not connect a production channel to this preview."
+          },
+          {
+            "id": "confirm",
+            "kind": "confirmation",
+            "title": "Activate after connecting the required YouTube connection"
+          }
+        ]
+      }
+    ]
+  }
+}
