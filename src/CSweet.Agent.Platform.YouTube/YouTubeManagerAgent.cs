@@ -331,7 +331,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
         using var client = modelFactory is null ? context.CreateChatClient(selection) : await modelFactory.CreateChatClientAsync(selection, ct);
         var result = await context.Platform.Calendar.GetResponseAsync(client, [new ChatMessage(ChatRole.System, YouTubeManagerProfile.Instructions + "\n" + instruction),
             new ChatMessage(ChatRole.User, data)], await context.Platform.Calendar.WithToolsAsync(new ChatOptions
-            { MaxOutputTokens = 3000, Temperature = 0.2f, Reasoning = new() { Output = ReasoningOutput.None, Effort = ReasoningEffort.Low } }, cancellationToken), ct);
+            { MaxOutputTokens = 3000, Temperature = 0.2f, Reasoning = new() { Output = ReasoningOutput.None, Effort = ReasoningEffort.Low } }, ct), ct);
         if (string.IsNullOrWhiteSpace(result.Text) || result.Text.Length > 16000 || result.FinishReason == ChatFinishReason.Length)
             throw new InvalidOperationException("The reasoning result was empty or incomplete.");
         return result.Text.Trim();

@@ -34,7 +34,7 @@ This repository contains one standalone C-Sweet protocol-v2 agent. Its purpose i
   data rather than inventing zeros, and save narrative/delivery receipts before advancing. Never derive
   replacement metrics or infer complete date coverage from an aggregate response. Use the host's standard
   reasoning configuration; no custom credential wizard or provider-specific host code.
-- Current unpublished version is 0.1.0, using SDK 3.38.0 and connector 0.1.0. Verify package-only
+- Current unpublished version is 0.1.0, using SDK 3.40.0 and connector 0.1.0. Verify package-only
   dependencies; do not introduce sibling source references.
 
 ## Verification

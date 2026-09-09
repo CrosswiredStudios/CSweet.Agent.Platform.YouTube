@@ -4,7 +4,7 @@ Conversational C-Sweet specialist for a company's YouTube channel. The agent use
 an explicitly bound YouTube connector; it never receives Google credentials or
 raw authenticated network access.
 
-Version 0.1.0 targets .NET 10, protocol 2.3, SDK 3.38.0 and the explicitly bound
+Version 0.1.0 targets .NET 10, protocol 2.3, SDK 3.40.0 and the explicitly bound
 `com.csweet.connector.youtube` dependency (`>=0.1.0 <0.2.0`).
 
 The integration package and repository are `CSweet.Plugins.Platform.YouTube`. They own
@@ -41,7 +41,7 @@ handoff to another requester and oversized-state sharding remain unfinished. The
 and prior revisions also need the outstanding provenance-aware retention/purge work.
 Deterministic tests are not browser or real-Google edit acceptance.
 
-SDK 3.38.0 supplies source-bound attachment metadata for connector media requests. The host validates
+SDK 3.40.0 supplies source-bound attachment metadata for connector media requests. The host validates
 live chat access and freezes the original attachment with the approved media plan. Conversational
 immediate-upload intake is now connected to the durable approval worker. The host's generic large-video
 attachment UX still needs browser acceptance and transfer recovery work. Users supply attached videos,

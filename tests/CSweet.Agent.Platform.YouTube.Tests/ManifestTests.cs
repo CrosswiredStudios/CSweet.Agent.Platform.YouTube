@@ -15,8 +15,8 @@ public sealed class ManifestTests
         var description = project.Descendants("Description").Single().Value;
         Assert.Contains("YouTube", description); Assert.DoesNotContain("Package Description", description);
         var dependencies = project.Descendants("PackageReference").ToDictionary(x => x.Attribute("Include")!.Value, x => x.Attribute("Version")!.Value);
-        Assert.Equal("3.38.0", dependencies["CSweet.Agent.SDK"]);
-        Assert.Equal("0.2.0", dependencies["CSweet.Plugins.Platform.YouTube"]);
+        Assert.Equal("3.40.0", dependencies["CSweet.Agent.SDK"]);
+        Assert.Equal("0.1.0", dependencies["CSweet.Plugins.Platform.YouTube"]);
         Assert.Empty(project.Descendants("ProjectReference"));
     }
 
