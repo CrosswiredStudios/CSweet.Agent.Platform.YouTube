@@ -1,0 +1,98 @@
+name: agent-release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - src/CSweet.Agent.Platform.YouTube/CSweet.Agent.Platform.YouTube.csproj
+      - csweet-plugin.json
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (for example 0.2.0; blank reads csweet-plugin.json)'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: agent-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref_type == 'tag' || github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+      DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          $manifest = Get-Content csweet-plugin.json -Raw | ConvertFrom-Json
+          $manifestVersion = [string]$manifest.version
+          if ([string]::IsNullOrWhiteSpace($manifestVersion)) { throw "csweet-plugin.json has no version." }
+          $requested = '${{ inputs.version }}'
+          if ($env:GITHUB_REF_TYPE -eq 'tag') { $requested = $env:GITHUB_REF_NAME.TrimStart('v') }
+          if (-not [string]::IsNullOrWhiteSpace($requested) -and $requested -ne $manifestVersion) {
+            throw "Requested version $requested does not match csweet-plugin.json version $manifestVersion."
+          }
+          "version=$manifestVersion" >> $env:GITHUB_OUTPUT
+          "tag=v$manifestVersion" >> $env:GITHUB_OUTPUT
+      - name: Verify manifest, implementation, and release notes agree
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          $manifest = Get-Content csweet-plugin.json -Raw | ConvertFrom-Json
+          $project = [xml](Get-Content src/CSweet.Agent.Platform.YouTube/CSweet.Agent.Platform.YouTube.csproj)
+          $projectVersion = [string]($project.Project.PropertyGroup | Where-Object Version | Select-Object -First 1).Version
+          if ($projectVersion -ne $version) { throw "csproj version $projectVersion does not match manifest version $version." }
+          if (-not (Test-Path "releases/$version.md")) { throw "Missing releases/$version.md for version $version." }
+      - run: dotnet test CSweet.Agent.Platform.YouTube.slnx -c Release
+      - name: Publish linux-x64 agent
+        run: dotnet publish src/CSweet.Agent.Platform.YouTube/CSweet.Agent.Platform.YouTube.csproj -c Release --framework net10.0 --runtime linux-x64 --self-contained false -o publish/linux-x64
+      - name: Stage manifest and pack bundle
+        shell: pwsh
+        run: |
+          Copy-Item csweet-plugin.json publish/linux-x64/csweet-plugin.json
+          $version = '${{ steps.version.outputs.version }}'
+          $bundle = "CSweet.Agent.Platform.YouTube-$version-linux-x64.csab"
+          python3 scripts/pack-csab.py pack --manifest csweet-plugin.json --publish-dir publish/linux-x64 --os linux --arch x64 --out $bundle
+          python3 scripts/pack-csab.py verify --bundle $bundle --os linux --arch x64
+          (Get-FileHash $bundle -Algorithm SHA256).Hash.ToLowerInvariant() + "  $bundle" | Out-File "$bundle.sha256" -Encoding ascii -NoNewline
+          "bundle=$bundle" >> $env:GITHUB_OUTPUT
+        id: bundle
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-csab-${{ steps.version.outputs.version }}
+          path: |
+            ${{ steps.bundle.outputs.bundle }}
+            ${{ steps.bundle.outputs.bundle }}.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+          BUNDLE: ${{ steps.bundle.outputs.bundle }}
+        run: |
+          gh release view $env:RELEASE_TAG --repo '${{ github.repository }}' *> $null
+          if ($LASTEXITCODE -eq 0) { exit 0 }
+          gh release create $env:RELEASE_TAG --repo '${{ github.repository }}' --target '${{ github.sha }}' --title "YouTube Manager $env:RELEASE_VERSION" --notes-file "releases/$env:RELEASE_VERSION.md" $env:BUNDLE "$env:BUNDLE.sha256"
+          if ($LASTEXITCODE -ne 0) { throw "GitHub release creation failed." }
