@@ -16,7 +16,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
         { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
     private static readonly HashSet<string> ReadIntents = ["channel", "video", "playlists", "playlist-items", "comments", "replies", "captions", "broadcast", "stream", "analytics", "members", "members-next", "membership-levels"];
     public override string AgentId => YouTubeManagerProfile.Id;
-    public override string Version => "0.2.1";
+    public override string Version => "0.2.2";
 
     protected override async Task<AgentWorkResult> ExecuteCapabilityCoreAsync(AgentCapabilityRequest request,
         AgentRuntimeContext context, CancellationToken ct)

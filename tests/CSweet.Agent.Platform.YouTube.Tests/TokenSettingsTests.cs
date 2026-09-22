@@ -15,14 +15,14 @@ public sealed class TokenSettingsTests
     }
 
     [Fact]
-    public void OutputIsClampedBelowTheContextWindow()
+    public void OutputUsesConfiguredBudgetAndStaysBelowTheContextWindow()
     {
         var settings = new AgentSettings(new Dictionary<string, JsonElement>
         {
-            ["maxContextWindowTokens"] = JsonSerializer.SerializeToElement(40_000),
-            ["maxOutputTokens"] = JsonSerializer.SerializeToElement(100_000),
+            ["maxContextWindowTokens"] = JsonSerializer.SerializeToElement(220_000),
+            ["maxOutputTokens"] = JsonSerializer.SerializeToElement(128_000),
         });
-        Assert.Equal(32_768, YouTubeManagerAgent.ResolveOutputTokens(settings));
+        Assert.Equal(128_000, YouTubeManagerAgent.ResolveOutputTokens(settings));
 
         var tight = new AgentSettings(new Dictionary<string, JsonElement>
         {
@@ -45,6 +45,8 @@ public sealed class TokenSettingsTests
             configuration.Fields.Select(x => x.Key));
         Assert.Equal(220_000, configuration.Settings["maxContextWindowTokens"].GetInt32());
         Assert.Equal(32_000, configuration.Settings["maxOutputTokens"].GetInt32());
+        Assert.Null(configuration.Fields.Single(x => x.Key == "maxContextWindowTokens").Maximum);
+        Assert.Null(configuration.Fields.Single(x => x.Key == "maxOutputTokens").Maximum);
     }
 
     [Fact]
