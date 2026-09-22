@@ -10,7 +10,7 @@
   },
   "id": "com.csweet.agent.platform.youtube",
   "name": "YouTube Manager",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": {
     "id": "com.csweet",
     "name": "C-Sweet"
@@ -38,28 +38,30 @@
         "required": ["agentId", "agentVersion", "schemaVersion", "fields", "settings"],
         "properties": {
           "agentId": { "type": "string", "const": "com.csweet.agent.platform.youtube" },
-          "agentVersion": { "type": "string", "const": "0.1.0" },
+          "agentVersion": { "type": "string", "const": "0.2.1" },
           "schemaVersion": { "type": "string", "const": "1.0" },
           "fields": {
-            "type": "array", "minItems": 2, "maxItems": 2,
+            "type": "array", "minItems": 4, "maxItems": 4,
             "items": {
               "type": "object", "additionalProperties": false, "required": ["key", "label", "type", "required"],
               "properties": {
-                "key": { "type": "string", "enum": ["llmProviderId", "llmModel"] },
+                "key": { "type": "string", "enum": ["llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens"] },
                 "label": { "type": "string", "maxLength": 80 },
-                "type": { "type": "string", "enum": ["llmProvider", "llmModel"] },
+                "type": { "type": "string", "enum": ["llmProvider", "llmModel", "number"] },
                 "required": { "type": "boolean", "const": true },
                 "description": { "type": ["string", "null"], "maxLength": 256 },
                 "placeholder": { "type": "null" }, "options": { "type": "null" },
-                "minimum": { "type": "null" }, "maximum": { "type": "null" }, "step": { "type": "null" },
+                "minimum": { "type": ["number", "null"] }, "maximum": { "type": ["number", "null"] }, "step": { "type": ["number", "null"] },
                 "dependsOnFieldKey": { "type": ["string", "null"], "maxLength": 40 },
-                "lessThanFieldKey": { "type": "null" }, "visibleWhenFieldKey": { "type": "null" }, "visibleWhenValue": { "type": "null" }
+                "lessThanFieldKey": { "type": ["string", "null"], "maxLength": 40 }, "visibleWhenFieldKey": { "type": "null" }, "visibleWhenValue": { "type": "null" }
               }
             }
           },
           "settings": {
-            "type": "object", "additionalProperties": false, "required": ["llmProviderId", "llmModel"],
-            "properties": { "llmProviderId": { "type": "string", "maxLength": 36 }, "llmModel": { "type": "string", "maxLength": 256 } }
+            "type": "object", "additionalProperties": false, "required": ["llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens"],
+            "properties": { "llmProviderId": { "type": "string", "maxLength": 36 }, "llmModel": { "type": "string", "maxLength": 256 },
+              "maxContextWindowTokens": { "type": "number", "minimum": 32769, "maximum": 2000000 },
+              "maxOutputTokens": { "type": "number", "minimum": 2048, "maximum": 32768 } }
           }
         }
       },
@@ -72,7 +74,9 @@
         "type": "object", "additionalProperties": false, "required": ["settings"],
         "properties": { "settings": {
           "type": "object", "additionalProperties": false,
-          "properties": { "llmProviderId": { "type": "string", "format": "uuid" }, "llmModel": { "type": "string", "minLength": 1, "maxLength": 256 } }
+          "properties": { "llmProviderId": { "type": "string", "format": "uuid" }, "llmModel": { "type": "string", "minLength": 1, "maxLength": 256 },
+            "maxContextWindowTokens": { "type": "number", "minimum": 32769, "maximum": 2000000 },
+            "maxOutputTokens": { "type": "number", "minimum": 2048, "maximum": 32768 } }
         } }
       },
       "outputSchema": {
@@ -80,8 +84,10 @@
         "properties": {
           "succeeded": { "type": "boolean" }, "message": { "type": ["string", "null"], "maxLength": 2000 },
           "settings": {
-            "type": "object", "additionalProperties": false, "required": ["llmProviderId", "llmModel"],
-            "properties": { "llmProviderId": { "type": "string", "maxLength": 36 }, "llmModel": { "type": "string", "maxLength": 256 } }
+            "type": "object", "additionalProperties": false, "required": ["llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens"],
+            "properties": { "llmProviderId": { "type": "string", "maxLength": 36 }, "llmModel": { "type": "string", "maxLength": 256 },
+              "maxContextWindowTokens": { "type": "number", "minimum": 32769, "maximum": 2000000 },
+              "maxOutputTokens": { "type": "number", "minimum": 2048, "maximum": 32768 } }
           }
         }
       },
@@ -386,7 +392,13 @@
   },
   "configuration": [
     { "key": "llmProviderId", "type": "provider", "label": "Reasoning service", "required": true, "secret": false },
-    { "key": "llmModel", "type": "model", "label": "Reasoning model", "required": true, "secret": false }
+    { "key": "llmModel", "type": "model", "label": "Reasoning model", "required": true, "secret": false },
+    { "key": "maxContextWindowTokens", "type": "number", "label": "Maximum context-window tokens", "required": true, "secret": false,
+      "description": "Planning ceiling for YouTube Manager model requests; set this no higher than the selected model's real context window.",
+      "minimum": 32769, "maximum": 2000000, "step": 1000, "defaultValue": 220000 },
+    { "key": "maxOutputTokens", "type": "number", "label": "Maximum output tokens", "required": true, "secret": false,
+      "description": "Budget for each YouTube Manager model response, including reasoning. The provider may impose a lower ceiling.",
+      "minimum": 2048, "maximum": 32768, "step": 1000, "defaultValue": 32000, "lessThanFieldKey": "maxContextWindowTokens" }
   ],
   "credentials": [],
   "webAccess": {

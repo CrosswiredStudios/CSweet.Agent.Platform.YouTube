@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <PackageId>CSweet.Agent.Platform.YouTube</PackageId>
     <Authors>C-Sweet</Authors>
     <Description>Conversational YouTube specialist for verified reads, durable drafts, and exactly approved comment replies and immediate video uploads in C-Sweet.</Description>

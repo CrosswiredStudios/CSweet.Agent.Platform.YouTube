@@ -16,7 +16,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
         { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
     private static readonly HashSet<string> ReadIntents = ["channel", "video", "playlists", "playlist-items", "comments", "replies", "captions", "broadcast", "stream", "analytics", "members", "members-next", "membership-levels"];
     public override string AgentId => YouTubeManagerProfile.Id;
-    public override string Version => "0.2.0";
+    public override string Version => "0.2.1";
 
     protected override async Task<AgentWorkResult> ExecuteCapabilityCoreAsync(AgentCapabilityRequest request,
         AgentRuntimeContext context, CancellationToken ct)
@@ -331,7 +331,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
         using var client = modelFactory is null ? context.CreateChatClient(selection) : await modelFactory.CreateChatClientAsync(selection, ct);
         var result = await context.Platform.Calendar.GetResponseAsync(client, [new ChatMessage(ChatRole.System, YouTubeManagerProfile.Instructions + "\n" + instruction),
             new ChatMessage(ChatRole.User, data)], await context.Platform.Calendar.WithToolsAsync(new ChatOptions
-            { MaxOutputTokens = 3000, Temperature = 0.2f, Reasoning = new() { Output = ReasoningOutput.None, Effort = ReasoningEffort.Low } }, ct), ct);
+            { MaxOutputTokens = ResolveOutputTokens(Settings), Temperature = 0.2f, Reasoning = new() { Output = ReasoningOutput.None, Effort = ReasoningEffort.Low } }, ct), ct);
         if (string.IsNullOrWhiteSpace(result.Text) || result.Text.Length > 16000 || result.FinishReason == ChatFinishReason.Length)
             throw new InvalidOperationException("The reasoning result was empty or incomplete.");
         return result.Text.Trim();

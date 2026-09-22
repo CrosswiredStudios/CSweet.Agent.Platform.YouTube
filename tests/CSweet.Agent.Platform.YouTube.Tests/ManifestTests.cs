@@ -10,7 +10,7 @@ public sealed class ManifestTests
     {
         var project = System.Xml.Linq.XDocument.Load(Path.Combine(RepositoryRoot(), "src", "CSweet.Agent.Platform.YouTube", "CSweet.Agent.Platform.YouTube.csproj"));
         Assert.Equal("CSweet.Agent.Platform.YouTube", project.Descendants("PackageId").Single().Value);
-        Assert.Equal("0.2.0", project.Descendants("Version").Single().Value);
+        Assert.Equal("0.2.1", project.Descendants("Version").Single().Value);
         Assert.Equal("C-Sweet", project.Descendants("Authors").Single().Value);
         var description = project.Descendants("Description").Single().Value;
         Assert.Contains("YouTube", description); Assert.DoesNotContain("Package Description", description);
@@ -38,7 +38,7 @@ public sealed class ManifestTests
             System.Text.Json.JsonSerializer.SerializeToElement(new { })), new AgentTestRuntime().CreateContext(), default);
         Assert.True(described.Succeeded);
         var configuration = described.Value!.Value.Deserialize<AgentConfigurationSchemaResponse>(new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
-        Assert.Equal(new[] { "llmProviderId", "llmModel" }, configuration.Fields.Select(x => x.Key));
+        Assert.Equal(new[] { "llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens" }, configuration.Fields.Select(x => x.Key));
         Assert.Equal(configuration.Fields.Select(x => x.Key), manifest.Configuration.Select(x => x.Key));
         Assert.Contains(AgentLifecycleEvents.Onboarded, manifest.Events.Subscribes);
         Assert.Contains(manifest.Requires, x => x.Name == AgentLifecycleCapabilities.CompleteOnboarding);

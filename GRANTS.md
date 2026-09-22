@@ -53,7 +53,7 @@ The manifest requests authority; installation and connector binding grant it sep
 - `platform.llm.chat-stream.v1` uses the conversation's approved reasoning profile, or the standard
   installation reasoning configuration for scheduled reports. No tools are supplied to the model:
   bounded validated routing selects deterministic typed reads. Native configuration describe/update
-  contracts expose only `llmProviderId` and `llmModel`; they are not conversational preferences or secrets.
+  contracts expose `llmProviderId`, `llmModel`, `maxContextWindowTokens` and `maxOutputTokens`; they are not conversational preferences or secrets.
 - The reporting duty uses existing channel/analytics reads, operating-state, personal-work and message
   grants. It freezes the date range, validates official metric columns through the plugin, saves evidence
   before reasoning, saves narrative before delivery and persists the receipt before advancing. Neither

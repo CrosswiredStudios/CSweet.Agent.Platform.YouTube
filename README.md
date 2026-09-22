@@ -144,9 +144,10 @@ Implemented conversational behavior:
 
 The conversation uses the platform-selected reasoning profile. Scheduled reports use the standard
 `llmProviderId` / `llmModel` installation configuration, automatically seeded from the host's configured
-default where available. Administrators use the existing native configuration controls if the default
-is missing. No custom credential/model wizard is introduced. The business-facing title does not convey
-employee-management authority.
+default where available. Required `maxContextWindowTokens` (default 220,000) and `maxOutputTokens`
+(default 32,000) bound every model response, including reasoning. Administrators use the existing native
+configuration controls if the default is missing. No custom credential/model wizard is introduced.
+The business-facing title does not convey employee-management authority.
 
 Scheduled reporting starts one week after activation and runs independently of comment scans. It
 freezes a requested seven-day period of completed Pacific-time days before reading official aggregate

@@ -15,9 +15,31 @@ public sealed record YouTubeReportCycle(Guid OrganizationId, Guid EmployeeId, Gu
 public sealed partial class YouTubeManagerAgent
 {
     private const string ReportingKey = "youtube.reporting";
+    public const int DefaultContextWindowTokens = 220_000;
+    public const int DefaultOutputTokens = 32_000;
+    private const int MinimumOutputTokens = 2_048;
+    private const int MaximumOutputTokens = 32_768;
     protected override AgentConfigurationBuilder Configure(AgentConfigurationBuilder builder) => builder
         .LlmProvider("llmProviderId", "Reasoning service", required: true, description: "Company-approved reasoning service for scheduled reports.")
-        .LlmModel("llmModel", "Reasoning model", "llmProviderId", required: true, description: "Company-approved model for scheduled analysis.");
+        .LlmModel("llmModel", "Reasoning model", "llmProviderId", required: true, description: "Company-approved model for scheduled analysis.")
+        .Number("maxContextWindowTokens", "Maximum context-window tokens", required: true,
+            description: "Planning ceiling for YouTube Manager model requests; set this no higher than the selected model's real context window.",
+            minimum: 32_769, maximum: 2_000_000, step: 1_000,
+            defaultValue: DefaultContextWindowTokens)
+        .Number("maxOutputTokens", "Maximum output tokens", required: true,
+            description: "Budget for each YouTube Manager model response, including reasoning. The provider may impose a lower ceiling.",
+            minimum: MinimumOutputTokens, maximum: MaximumOutputTokens, step: 1_000,
+            defaultValue: DefaultOutputTokens,
+            lessThanFieldKey: "maxContextWindowTokens");
+
+    public static int ResolveOutputTokens(AgentSettings settings)
+    {
+        var contextWindow = Math.Max(settings.GetInt32("maxContextWindowTokens", DefaultContextWindowTokens),
+            MinimumOutputTokens + 1);
+        var output = Math.Clamp(settings.GetInt32("maxOutputTokens", DefaultOutputTokens),
+            MinimumOutputTokens, MaximumOutputTokens);
+        return Math.Min(output, contextWindow - 1);
+    }
 
     private async Task StartReporting(YouTubeMonitoringState monitor, AgentRuntimeContext context, CancellationToken ct)
     {

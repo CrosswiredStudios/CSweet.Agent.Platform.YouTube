@@ -401,6 +401,7 @@ public sealed partial class ConversationTests
         private readonly Queue<string> outputs = new(second is null ? [first] : [first, second]);
         public void Enqueue(string output) => outputs.Enqueue(output);
         public int Calls { get; private set; }
+        public int? LastMaxOutputTokens { get; private set; }
         public string Instructions { get; private set; } = "";
         public string LastData { get; private set; } = "";
         public IReadOnlyList<AITool> Tools { get; private set; } = [];
@@ -408,7 +409,7 @@ public sealed partial class ConversationTests
         public Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> messages, ChatOptions? options = null, CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested(); Calls++;
-            Assert.Equal(3000, options!.MaxOutputTokens); Assert.Equal(0.2f, options.Temperature);
+            LastMaxOutputTokens = options!.MaxOutputTokens; Assert.Equal(0.2f, options.Temperature);
             Instructions = messages.First().Text; LastData = messages.Last().Text; Tools = options.Tools?.ToArray() ?? [];
             return Task.FromResult(new ChatResponse(new ChatMessage(ChatRole.Assistant, outputs.Dequeue())));
         }
