@@ -10,7 +10,7 @@
   },
   "id": "com.csweet.agent.platform.youtube",
   "name": "YouTube Manager",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "publisher": {
     "id": "com.csweet",
     "name": "C-Sweet"
@@ -38,7 +38,7 @@
         "required": ["agentId", "agentVersion", "schemaVersion", "fields", "settings"],
         "properties": {
           "agentId": { "type": "string", "const": "com.csweet.agent.platform.youtube" },
-          "agentVersion": { "type": "string", "const": "0.2.2" },
+          "agentVersion": { "type": "string", "const": "0.2.3" },
           "schemaVersion": { "type": "string", "const": "1.0" },
           "fields": {
             "type": "array", "minItems": 4, "maxItems": 4,
@@ -395,10 +395,10 @@
     { "key": "llmModel", "type": "model", "label": "Reasoning model", "required": true, "secret": false },
     { "key": "maxContextWindowTokens", "type": "number", "label": "Maximum context-window tokens", "required": true, "secret": false,
       "description": "Planning ceiling for YouTube Manager model requests; set this no higher than the selected model's real context window.",
-      "minimum": 32769, "step": 1000, "defaultValue": 220000 },
+      "minimum": 32769, "step": 1000, "defaultValue": 256000 },
     { "key": "maxOutputTokens", "type": "number", "label": "Maximum output tokens", "required": true, "secret": false,
       "description": "Budget for each YouTube Manager model response, including reasoning. Set this within the selected model and provider's supported limits.",
-      "minimum": 2048, "step": 1000, "defaultValue": 32000, "lessThanFieldKey": "maxContextWindowTokens" }
+      "minimum": 2048, "step": 1000, "defaultValue": 128000, "lessThanFieldKey": "maxContextWindowTokens" }
   ],
   "credentials": [],
   "webAccess": {

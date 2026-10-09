@@ -8,9 +8,9 @@ public sealed class TokenSettingsTests
     [Fact]
     public void DefaultsResolveToThePublishedBudgets()
     {
-        Assert.Equal(220_000, YouTubeManagerAgent.DefaultContextWindowTokens);
-        Assert.Equal(32_000, YouTubeManagerAgent.DefaultOutputTokens);
-        Assert.Equal(32_000, YouTubeManagerAgent.ResolveOutputTokens(
+        Assert.Equal(256_000, YouTubeManagerAgent.DefaultContextWindowTokens);
+        Assert.Equal(128_000, YouTubeManagerAgent.DefaultOutputTokens);
+        Assert.Equal(128_000, YouTubeManagerAgent.ResolveOutputTokens(
             new AgentSettings(new Dictionary<string, JsonElement>())));
     }
 
@@ -43,8 +43,8 @@ public sealed class TokenSettingsTests
             new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
         Assert.Equal(new[] { "llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens" },
             configuration.Fields.Select(x => x.Key));
-        Assert.Equal(220_000, configuration.Settings["maxContextWindowTokens"].GetInt32());
-        Assert.Equal(32_000, configuration.Settings["maxOutputTokens"].GetInt32());
+        Assert.Equal(256_000, configuration.Settings["maxContextWindowTokens"].GetInt32());
+        Assert.Equal(128_000, configuration.Settings["maxOutputTokens"].GetInt32());
         Assert.Null(configuration.Fields.Single(x => x.Key == "maxContextWindowTokens").Maximum);
         Assert.Null(configuration.Fields.Single(x => x.Key == "maxOutputTokens").Maximum);
     }

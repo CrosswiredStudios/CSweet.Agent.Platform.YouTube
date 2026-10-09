@@ -15,8 +15,8 @@ public sealed record YouTubeReportCycle(Guid OrganizationId, Guid EmployeeId, Gu
 public sealed partial class YouTubeManagerAgent
 {
     private const string ReportingKey = "youtube.reporting";
-    public const int DefaultContextWindowTokens = 220_000;
-    public const int DefaultOutputTokens = 32_000;
+    public const int DefaultContextWindowTokens = 256_000;
+    public const int DefaultOutputTokens = 128_000;
     private const int MinimumOutputTokens = 2_048;
     protected override AgentConfigurationBuilder Configure(AgentConfigurationBuilder builder) => builder
         .LlmProvider("llmProviderId", "Reasoning service", required: true, description: "Company-approved reasoning service for scheduled reports.")
