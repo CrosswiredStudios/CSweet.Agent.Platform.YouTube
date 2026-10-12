@@ -10,7 +10,7 @@
   },
   "id": "com.csweet.agent.platform.youtube",
   "name": "YouTube Manager",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "publisher": {
     "id": "com.csweet",
     "name": "C-Sweet"
@@ -32,66 +32,247 @@
     {
       "name": "agent.configuration.describe.v1",
       "description": "Describe the company's approved reasoning configuration for scheduled YouTube reports.",
-      "inputSchema": { "type": "object", "additionalProperties": false },
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false
+      },
       "outputSchema": {
-        "type": "object", "additionalProperties": false,
-        "required": ["agentId", "agentVersion", "schemaVersion", "fields", "settings"],
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "agentId",
+          "agentVersion",
+          "schemaVersion",
+          "fields",
+          "settings"
+        ],
         "properties": {
-          "agentId": { "type": "string", "const": "com.csweet.agent.platform.youtube" },
-          "agentVersion": { "type": "string", "const": "0.2.3" },
-          "schemaVersion": { "type": "string", "const": "1.0" },
+          "agentId": {
+            "type": "string",
+            "const": "com.csweet.agent.platform.youtube"
+          },
+          "agentVersion": {
+            "type": "string",
+            "const": "0.3.0"
+          },
+          "schemaVersion": {
+            "type": "string",
+            "const": "1.0"
+          },
           "fields": {
-            "type": "array", "minItems": 4, "maxItems": 4,
+            "type": "array",
+            "minItems": 4,
+            "maxItems": 4,
             "items": {
-              "type": "object", "additionalProperties": false, "required": ["key", "label", "type", "required"],
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "key",
+                "label",
+                "type",
+                "required"
+              ],
               "properties": {
-                "key": { "type": "string", "enum": ["llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens"] },
-                "label": { "type": "string", "maxLength": 80 },
-                "type": { "type": "string", "enum": ["llmProvider", "llmModel", "number"] },
-                "required": { "type": "boolean", "const": true },
-                "description": { "type": ["string", "null"], "maxLength": 256 },
-                "placeholder": { "type": "null" }, "options": { "type": "null" },
-                "minimum": { "type": ["number", "null"] }, "maximum": { "type": ["number", "null"] }, "step": { "type": ["number", "null"] },
-                "dependsOnFieldKey": { "type": ["string", "null"], "maxLength": 40 },
-                "lessThanFieldKey": { "type": ["string", "null"], "maxLength": 40 }, "visibleWhenFieldKey": { "type": "null" }, "visibleWhenValue": { "type": "null" }
+                "key": {
+                  "type": "string",
+                  "enum": [
+                    "llmProviderId",
+                    "llmModel",
+                    "maxContextWindowTokens",
+                    "maxOutputTokens"
+                  ]
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "llmProvider",
+                    "llmModel",
+                    "number"
+                  ]
+                },
+                "required": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 256
+                },
+                "placeholder": {
+                  "type": "null"
+                },
+                "options": {
+                  "type": "null"
+                },
+                "minimum": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "maximum": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "step": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "dependsOnFieldKey": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 40
+                },
+                "lessThanFieldKey": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 40
+                },
+                "visibleWhenFieldKey": {
+                  "type": "null"
+                },
+                "visibleWhenValue": {
+                  "type": "null"
+                }
               }
             }
           },
           "settings": {
-            "type": "object", "additionalProperties": false, "required": ["llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens"],
-            "properties": { "llmProviderId": { "type": "string", "maxLength": 36 }, "llmModel": { "type": "string", "maxLength": 256 },
-              "maxContextWindowTokens": { "type": "number", "minimum": 32769 },
-              "maxOutputTokens": { "type": "number", "minimum": 2048 } }
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "llmProviderId",
+              "llmModel",
+              "maxContextWindowTokens",
+              "maxOutputTokens"
+            ],
+            "properties": {
+              "llmProviderId": {
+                "type": "string",
+                "maxLength": 36
+              },
+              "llmModel": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "maxContextWindowTokens": {
+                "type": "number",
+                "minimum": 32769
+              },
+              "maxOutputTokens": {
+                "type": "number",
+                "minimum": 2048
+              }
+            }
           }
         }
       },
-      "executionTimeoutSeconds": 30, "idempotency": "none", "riskClass": "standard"
+      "executionTimeoutSeconds": 30,
+      "idempotency": "none",
+      "riskClass": "standard"
     },
     {
       "name": "agent.configuration.update.v1",
       "description": "Update the approved reasoning configuration through native platform controls, not conversational preferences.",
       "inputSchema": {
-        "type": "object", "additionalProperties": false, "required": ["settings"],
-        "properties": { "settings": {
-          "type": "object", "additionalProperties": false,
-          "properties": { "llmProviderId": { "type": "string", "format": "uuid" }, "llmModel": { "type": "string", "minLength": 1, "maxLength": 256 },
-            "maxContextWindowTokens": { "type": "number", "minimum": 32769 },
-            "maxOutputTokens": { "type": "number", "minimum": 2048 } }
-        } }
-      },
-      "outputSchema": {
-        "type": "object", "additionalProperties": false, "required": ["succeeded", "message", "settings"],
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "settings"
+        ],
         "properties": {
-          "succeeded": { "type": "boolean" }, "message": { "type": ["string", "null"], "maxLength": 2000 },
           "settings": {
-            "type": "object", "additionalProperties": false, "required": ["llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens"],
-            "properties": { "llmProviderId": { "type": "string", "maxLength": 36 }, "llmModel": { "type": "string", "maxLength": 256 },
-              "maxContextWindowTokens": { "type": "number", "minimum": 32769 },
-              "maxOutputTokens": { "type": "number", "minimum": 2048 } }
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "llmProviderId": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "llmModel": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "maxContextWindowTokens": {
+                "type": "number",
+                "minimum": 32769
+              },
+              "maxOutputTokens": {
+                "type": "number",
+                "minimum": 2048
+              }
+            }
           }
         }
       },
-      "executionTimeoutSeconds": 30, "idempotency": "work-item", "riskClass": "standard"
+      "outputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "succeeded",
+          "message",
+          "settings"
+        ],
+        "properties": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 2000
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "llmProviderId",
+              "llmModel",
+              "maxContextWindowTokens",
+              "maxOutputTokens"
+            ],
+            "properties": {
+              "llmProviderId": {
+                "type": "string",
+                "maxLength": 36
+              },
+              "llmModel": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "maxContextWindowTokens": {
+                "type": "number",
+                "minimum": 32769
+              },
+              "maxOutputTokens": {
+                "type": "number",
+                "minimum": 2048
+              }
+            }
+          }
+        }
+      },
+      "executionTimeoutSeconds": 30,
+      "idempotency": "work-item",
+      "riskClass": "standard"
     },
     {
       "name": "assistant.converse.v1",
@@ -183,11 +364,31 @@
     }
   ],
   "requires": [
-    {"name": "work.calendar.read.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
-    {"name": "work.calendar.create.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
-    {"name": "work.calendar.update.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
-    {"name": "work.calendar.cancel.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
-    {"name": "work.calendar.schedule.v1", "scope": "organization", "purpose": "Operate the business calendar within event ownership and reporting authority."},
+    {
+      "name": "work.calendar.read.v1",
+      "scope": "organization",
+      "purpose": "Operate the business calendar within event ownership and reporting authority."
+    },
+    {
+      "name": "work.calendar.create.v1",
+      "scope": "organization",
+      "purpose": "Operate the business calendar within event ownership and reporting authority."
+    },
+    {
+      "name": "work.calendar.update.v1",
+      "scope": "organization",
+      "purpose": "Operate the business calendar within event ownership and reporting authority."
+    },
+    {
+      "name": "work.calendar.cancel.v1",
+      "scope": "organization",
+      "purpose": "Operate the business calendar within event ownership and reporting authority."
+    },
+    {
+      "name": "work.calendar.schedule.v1",
+      "scope": "organization",
+      "purpose": "Operate the business calendar within event ownership and reporting authority."
+    },
     {
       "name": "youtube.api.member.list.v1",
       "dependency": "youtube",
@@ -379,26 +580,131 @@
       "dependency": "youtube",
       "scope": "organization",
       "purpose": "Read the explicitly connected channel through the approved connector."
+    },
+    {
+      "name": "work.delegation.create.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.delegation.read.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.delegation.respond.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.delegation.publish.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.delegation.cancel.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.tracking.follow.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.tracking.unfollow.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.tracking.read.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.tracking.progress.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.tracking.pending.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "work.tracking.processed.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
+    },
+    {
+      "name": "platform.organization.snapshot.read.v1",
+      "scope": "organization",
+      "purpose": "Use shared SDK delegation, authenticated recipient resolution, canonical work and durable reporting within existing resource authority.",
+      "modelVisible": false
     }
   ],
   "events": {
-    "subscribes": ["com.csweet.calendar.reminder-due.v1", 
+    "subscribes": [
+      "com.csweet.calendar.reminder-due.v1",
       "com.csweet.agent.onboarded.v1",
       "com.csweet.connector.action.changed.v1",
       "com.csweet.plugin.setup.requested.v1",
       "com.csweet.user.message.received.v1",
-      "com.csweet.work.personal-todo.available.v1"
+      "com.csweet.work.personal-todo.available.v1",
+      "com.csweet.work.delegation.received.v1",
+      "com.csweet.work.tracking.changed.v1",
+      "com.csweet.agent.attention.review-due.v1"
     ]
   },
   "configuration": [
-    { "key": "llmProviderId", "type": "provider", "label": "Reasoning service", "required": true, "secret": false },
-    { "key": "llmModel", "type": "model", "label": "Reasoning model", "required": true, "secret": false },
-    { "key": "maxContextWindowTokens", "type": "number", "label": "Maximum context-window tokens", "required": true, "secret": false,
+    {
+      "key": "llmProviderId",
+      "type": "provider",
+      "label": "Reasoning service",
+      "required": true,
+      "secret": false
+    },
+    {
+      "key": "llmModel",
+      "type": "model",
+      "label": "Reasoning model",
+      "required": true,
+      "secret": false
+    },
+    {
+      "key": "maxContextWindowTokens",
+      "type": "number",
+      "label": "Maximum context-window tokens",
+      "required": true,
+      "secret": false,
       "description": "Planning ceiling for YouTube Manager model requests; set this no higher than the selected model's real context window.",
-      "minimum": 32769, "step": 1000, "defaultValue": 256000 },
-    { "key": "maxOutputTokens", "type": "number", "label": "Maximum output tokens", "required": true, "secret": false,
+      "minimum": 32769,
+      "step": 1000,
+      "defaultValue": 256000
+    },
+    {
+      "key": "maxOutputTokens",
+      "type": "number",
+      "label": "Maximum output tokens",
+      "required": true,
+      "secret": false,
       "description": "Budget for each YouTube Manager model response, including reasoning. Set this within the selected model and provider's supported limits.",
-      "minimum": 2048, "step": 1000, "defaultValue": 128000, "lessThanFieldKey": "maxContextWindowTokens" }
+      "minimum": 2048,
+      "step": 1000,
+      "defaultValue": 128000,
+      "lessThanFieldKey": "maxContextWindowTokens"
+    }
   ],
   "credentials": [],
   "webAccess": {

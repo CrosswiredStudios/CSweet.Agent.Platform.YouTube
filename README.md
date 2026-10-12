@@ -4,7 +4,7 @@ Conversational C-Sweet specialist for a company's YouTube channel. The agent use
 an explicitly bound YouTube connector; it never receives Google credentials or
 raw authenticated network access.
 
-Version 0.1.0 targets .NET 10, protocol 2.3, SDK 3.40.0 and the explicitly bound
+Version 0.3.0 targets .NET 10, protocol 2.3, SDK 3.65.0 and the explicitly bound
 `com.csweet.connector.youtube` dependency (`>=0.1.0 <0.2.0`).
 
 The integration package and repository are `CSweet.Plugins.Platform.YouTube`. They own
@@ -41,7 +41,7 @@ handoff to another requester and oversized-state sharding remain unfinished. The
 and prior revisions also need the outstanding provenance-aware retention/purge work.
 Deterministic tests are not browser or real-Google edit acceptance.
 
-SDK 3.40.0 supplies source-bound attachment metadata for connector media requests. The host validates
+SDK 3.65.0 supplies source-bound attachment metadata for connector media requests. The host validates
 live chat access and freezes the original attachment with the approved media plan. Conversational
 immediate-upload intake is now connected to the durable approval worker. The host's generic large-video
 attachment UX still needs browser acceptance and transfer recovery work. Users supply attached videos,
@@ -206,3 +206,7 @@ for production accounts until retention and purge are enforced and verified.
 ## Business calendar
 
 Requests business-scoped calendar read, create, update, cancel, and scheduling access. Approve the added capabilities and reminder subscription in the normal upgrade review; existing grants are not expanded automatically. Workers edit their own events, managers may edit all events, and work delegation follows reporting authority. Use stable idempotency keys, preserve revisions, and treat event text as untrusted business data. Typed operations are available through `context.Platform.Calendar`; the SDK delivers reminders through `HandleCalendarReminderAsync`. Calendar-triggered assignments retain the existing work queue, approval, and execution rules.
+
+## Delegation and tracking
+
+SDK 3.65.0 dispatches authenticated delegation before specialist conversation fallback. The manifest requests delegation, work tracking, directory and conversation reads, personal commitments and model interpretation. These declarations require reviewed grants; existing resource permissions and approval rules still apply. The shared SDK owns coordinator reporting and wake recovery.
