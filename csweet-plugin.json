@@ -10,7 +10,7 @@
   },
   "id": "com.csweet.agent.platform.youtube",
   "name": "YouTube Manager",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": {
     "id": "com.csweet",
     "name": "C-Sweet"
@@ -19,7 +19,7 @@
     "type": "dotnet-project",
     "projectPath": "src/CSweet.Agent.Platform.YouTube/CSweet.Agent.Platform.YouTube.csproj",
     "targetFramework": "net10.0",
-    "defaultActivationMode": "AlwaysOn",
+    "defaultActivationMode": "OnDemand",
     "defaultTickFrequencySeconds": 300,
     "supportsMultipleInstallations": true,
     "maximumConcurrentJobs": 1
@@ -53,7 +53,7 @@
           },
           "agentVersion": {
             "type": "string",
-            "const": "0.3.0"
+            "const": "0.3.1"
           },
           "schemaVersion": {
             "type": "string",

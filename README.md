@@ -4,7 +4,7 @@ Conversational C-Sweet specialist for a company's YouTube channel. The agent use
 an explicitly bound YouTube connector; it never receives Google credentials or
 raw authenticated network access.
 
-Version 0.3.0 targets .NET 10, protocol 2.3, SDK 3.65.0 and the explicitly bound
+Version 0.3.1 targets .NET 10, protocol 2.3, SDK 3.65.0 and the explicitly bound
 `com.csweet.connector.youtube` dependency (`>=0.1.0 <0.2.0`).
 
 The integration package and repository are `CSweet.Plugins.Platform.YouTube`. They own
@@ -210,3 +210,5 @@ Requests business-scoped calendar read, create, update, cancel, and scheduling a
 ## Delegation and tracking
 
 SDK 3.65.0 dispatches authenticated delegation before specialist conversation fallback. The manifest requests delegation, work tracking, directory and conversation reads, personal commitments and model interpretation. These declarations require reviewed grants; existing resource permissions and approval rules still apply. The shared SDK owns coordinator reporting and wake recovery.
+
+Activation defaults to OnDemand. Durable messages, assignments, scheduled duties and attention reviews wake the agent; idle runtimes release their Office slot. Attention wakes require the platform scheduler that supports sleeping OnDemand installations. Existing installations retain their selected activation mode until their schedule is updated.
