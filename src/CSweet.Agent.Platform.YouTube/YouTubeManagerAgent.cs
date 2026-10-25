@@ -16,7 +16,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
         { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
     private static readonly HashSet<string> ReadIntents = ["channel", "video", "playlists", "playlist-items", "comments", "replies", "captions", "broadcast", "stream", "analytics", "members", "members-next", "membership-levels"];
     public override string AgentId => YouTubeManagerProfile.Id;
-    public override string Version => "0.3.1";
+    public override string Version => "0.4.0";
 
     protected override async Task<AgentWorkResult> ExecuteCapabilityCoreAsync(AgentCapabilityRequest request,
         AgentRuntimeContext context, CancellationToken ct)
@@ -362,7 +362,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
     {
         if (input.ChatTurnId == Guid.Empty) return;
         await context.Platform.SuggestUserActionAsync(new(null, input.ChatTurnId, UserActionWorkflows.PluginSetupOpen,
-            "YouTube connection settings", "Connect, resume setup, or review permissions securely.", SerializePayload(new { }),
+            "Set up YouTube access", "Choose a channel shared with this business, resume setup, or ask your administrator to connect an account. Changing a channel always needs explicit review.", SerializePayload(new { }),
             $"youtube-settings:{input.MessageId:N}"), ct);
     }
 

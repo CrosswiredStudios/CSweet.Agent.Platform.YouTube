@@ -4,8 +4,16 @@ Conversational C-Sweet specialist for a company's YouTube channel. The agent use
 an explicitly bound YouTube connector; it never receives Google credentials or
 raw authenticated network access.
 
-Version 0.3.1 targets .NET 10, protocol 2.3, SDK 3.65.0 and the explicitly bound
-`com.csweet.connector.youtube` dependency (`>=0.1.0 <0.2.0`).
+Version 0.4.0 targets .NET 10, protocol 2.4, SDK 5.5.0 and the explicitly bound
+`com.csweet.connector.youtube` dependency (`>=0.2.0 <0.3.0`).
+
+The connector is installed once for the enterprise. A human connects a Google account in its
+native management page; the connector discovers only channels the authorization can actually
+access. An administrator shares the whole authorized account or selected channels with a
+business. YouTube Manager then requires a separate, explicit channel binding within that
+business. Connecting Google alone never grants this agent authority. Additional Brand Account
+authorizations may be necessary; the agent cannot enumerate every channel from one token.
+Reconnection and permission changes do not restore revoked autonomous policies.
 
 The integration package and repository are `CSweet.Plugins.Platform.YouTube`. They own
 provider setup declarations, scope sets, typed API abilities and channel checks. The agent
@@ -41,7 +49,7 @@ handoff to another requester and oversized-state sharding remain unfinished. The
 and prior revisions also need the outstanding provenance-aware retention/purge work.
 Deterministic tests are not browser or real-Google edit acceptance.
 
-SDK 3.65.0 supplies source-bound attachment metadata for connector media requests. The host validates
+The current SDK supplies source-bound attachment metadata for connector media requests. The host validates
 live chat access and freezes the original attachment with the approved media plan. Conversational
 immediate-upload intake is now connected to the durable approval worker. The host's generic large-video
 attachment UX still needs browser acceptance and transfer recovery work. Users supply attached videos,
@@ -209,6 +217,6 @@ Requests business-scoped calendar read, create, update, cancel, and scheduling a
 
 ## Delegation and tracking
 
-SDK 3.65.0 dispatches authenticated delegation before specialist conversation fallback. The manifest requests delegation, work tracking, directory and conversation reads, personal commitments and model interpretation. These declarations require reviewed grants; existing resource permissions and approval rules still apply. The shared SDK owns coordinator reporting and wake recovery.
+The current SDK dispatches authenticated delegation before specialist conversation fallback. The manifest requests delegation, work tracking, directory and conversation reads, personal commitments and model interpretation. These declarations require reviewed grants; existing resource permissions and approval rules still apply. The shared SDK owns coordinator reporting and wake recovery.
 
 Activation defaults to OnDemand. Durable messages, assignments, scheduled duties and attention reviews wake the agent; idle runtimes release their Office slot. Attention wakes require the platform scheduler that supports sleeping OnDemand installations. Existing installations retain their selected activation mode until their schedule is updated.

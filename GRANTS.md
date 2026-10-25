@@ -2,6 +2,13 @@
 
 The manifest requests authority; installation and connector binding grant it separately.
 
+Version 0.4.0 uses enterprise connector 0.2.0 through protocol 2.4. Connecting an account grants
+no ambient access to this employee. An administrator shares authorized channels/abilities with
+the business, then its manager explicitly binds this agent to one shared channel. Account-wide
+business access never permits the agent to switch channels itself. Provider consent, eligibility,
+business grants, consuming-agent capabilities and action approvals remain independent checks.
+Reconnection cannot restore disabled autonomous policies or retarget a pending approval.
+
 - `youtube.api.video.metadata.update.v1` is requested for existing-video conversational edits.
   The plugin preserves the complete writable snippet and the host enforces its exact strong version
   condition and authenticated resource ownership. This requires protocol 2.3, progressive content
