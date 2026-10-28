@@ -4,8 +4,10 @@ Conversational C-Sweet specialist for a company's YouTube channel. The agent use
 an explicitly bound YouTube connector; it never receives Google credentials or
 raw authenticated network access.
 
-Version 0.4.0 targets .NET 10, protocol 2.4, SDK 5.5.0 and the explicitly bound
-`com.csweet.connector.youtube` dependency (`>=0.2.0 <0.3.0`).
+Version 0.4.1 targets .NET 10, protocol 2.4, SDK 5.5.0 and the explicitly bound
+`com.csweet.connector.youtube` dependency (`>=0.2.1 <0.3.0`). The typed client package is
+pinned to the publicly verified NuGet version `[0.2.1]`, avoiding approximate resolution
+of the unpublished 0.2.0 package.
 
 The connector is installed once for the enterprise. A human connects a Google account in its
 native management page; the connector discovers only channels the authorization can actually
