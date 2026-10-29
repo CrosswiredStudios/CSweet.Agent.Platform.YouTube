@@ -10,7 +10,7 @@
   },
   "id": "com.csweet.agent.platform.youtube",
   "name": "YouTube Manager",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "publisher": {
     "id": "com.csweet",
     "name": "C-Sweet"
@@ -53,7 +53,7 @@
           },
           "agentVersion": {
             "type": "string",
-            "const": "0.4.0"
+            "const": "0.4.1"
           },
           "schemaVersion": {
             "type": "string",
@@ -736,7 +736,7 @@
       "id": "youtube",
       "pluginId": "com.csweet.connector.youtube",
       "publisherId": "com.csweet",
-      "minimumVersion": "0.2.0",
+      "minimumVersion": "0.2.1",
       "maximumVersionExclusive": "0.3.0"
     }
   ],
