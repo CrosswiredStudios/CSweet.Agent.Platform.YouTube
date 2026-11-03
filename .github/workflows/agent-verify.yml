@@ -1,0 +1,26 @@
+name: Agent verification
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'csweet-plugin.json'
+      - 'Directory.*'
+      - 'releases/**'
+      - '.github/workflows/agent-verify.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet test CSweet.Agent.Platform.YouTube.slnx -c Release --logger 'trx;LogFileName=agent.trx' --results-directory artifacts/test-results
+      - run: dotnet run --project src/CSweet.Agent.Platform.YouTube -c Release --no-build -- --self-test
+      - run: dotnet pack src/CSweet.Agent.Platform.YouTube -c Release --no-build -o artifacts/package

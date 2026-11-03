@@ -41,12 +41,27 @@ public sealed class TokenSettingsTests
         Assert.True(described.Succeeded);
         var configuration = described.Value!.Value.Deserialize<AgentConfigurationSchemaResponse>(
             new JsonSerializerOptions(JsonSerializerDefaults.Web))!;
-        Assert.Equal(new[] { "llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens" },
+        Assert.Equal(new[] { "llmProviderId", "llmModel", "maxContextWindowTokens", "maxOutputTokens", "enableScheduledWork" },
             configuration.Fields.Select(x => x.Key));
         Assert.Equal(256_000, configuration.Settings["maxContextWindowTokens"].GetInt32());
         Assert.Equal(128_000, configuration.Settings["maxOutputTokens"].GetInt32());
+        Assert.False(configuration.Settings["enableScheduledWork"].GetBoolean());
+        Assert.False(configuration.Fields.Single(x => x.Key == "enableScheduledWork").Required);
         Assert.Null(configuration.Fields.Single(x => x.Key == "maxContextWindowTokens").Maximum);
         Assert.Null(configuration.Fields.Single(x => x.Key == "maxOutputTokens").Maximum);
+    }
+
+    [Fact]
+    public async Task RecurringWorkRequiresATypedNativeOptIn()
+    {
+        var agent = new YouTubeManagerAgent(); var context = new AgentTestRuntime().CreateContext();
+        var invalid = await agent.ExecuteCapabilityAsync(new(Guid.NewGuid(), AgentConfigurationCapabilities.Update,
+            JsonSerializer.SerializeToElement(new UpdateAgentConfigurationRequest(new Dictionary<string, JsonElement>
+            { ["enableScheduledWork"] = JsonSerializer.SerializeToElement("true") }), new JsonSerializerOptions(JsonSerializerDefaults.Web))), context, default);
+        Assert.False(invalid.Succeeded);
+        var described = await agent.ExecuteCapabilityAsync(new(Guid.NewGuid(), AgentConfigurationCapabilities.Describe,
+            JsonSerializer.SerializeToElement(new { })), context, default);
+        Assert.False(described.Value!.Value.GetProperty("settings").GetProperty("enableScheduledWork").GetBoolean());
     }
 
     [Fact]

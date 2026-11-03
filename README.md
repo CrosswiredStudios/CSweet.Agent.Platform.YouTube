@@ -4,7 +4,7 @@ Conversational C-Sweet specialist for a company's YouTube channel. The agent use
 an explicitly bound YouTube connector; it never receives Google credentials or
 raw authenticated network access.
 
-Version 0.4.1 targets .NET 10, protocol 2.4, SDK 5.5.0 and the explicitly bound
+Version 0.5.0 targets .NET 10, protocol 2.4, SDK 5.5.0 and the explicitly bound
 `com.csweet.connector.youtube` dependency (`>=0.2.1 <0.3.0`). The typed client package is
 pinned to the publicly verified NuGet version `[0.2.1]`, avoiding approximate resolution
 of the unpublished 0.2.0 package.
@@ -85,8 +85,8 @@ Implemented conversational behavior:
 
 - Verify incoming messages, classify intent through a bounded model call and answer questions.
 - Offer native secure setup guidance without asking for copied credentials.
-- On the exact host onboarding event, verify the channel, save the introduction and separate recurring
-  monitoring/reporting duties, then acknowledge the stable source event. Replayed onboarding does not
+- On the exact host onboarding event, verify the channel and save the introduction before acknowledging
+  the stable source event. Recurring monitoring/reporting duties are created only when explicitly enabled. Replayed onboarding does not
   duplicate either task or introduction. Foreign organization/employee events and missing access cannot activate them.
 - Run initial comment synchronization and successive scans using that durable duty. The default is
   15 minutes after a completed scan; multi-page scans defer one minute between pages. Manager cadence
@@ -222,3 +222,29 @@ Requests business-scoped calendar read, create, update, cancel, and scheduling a
 The current SDK dispatches authenticated delegation before specialist conversation fallback. The manifest requests delegation, work tracking, directory and conversation reads, personal commitments and model interpretation. These declarations require reviewed grants; existing resource permissions and approval rules still apply. The shared SDK owns coordinator reporting and wake recovery.
 
 Activation defaults to OnDemand. Durable messages, assignments, scheduled duties and attention reviews wake the agent; idle runtimes release their Office slot. Attention wakes require the platform scheduler that supports sleeping OnDemand installations. Existing installations retain their selected activation mode until their schedule is updated.
+
+## Explicit recurring-work opt-in
+
+`enableScheduledWork` is a native installation setting, off by default. Leave it off for
+on-demand channel help and conversational video uploads. Onboarding still verifies the channel
+and completes, but creates no comment-monitoring or performance-report duty. Posting continues
+to require its separate provider scopes, business/agent grants and exact human approval.
+The report-only reasoning settings are optional for this mode; conversation continues to use
+the platform-selected reasoning service. An enabled report with missing configuration defers
+without model calls or a substitute service, retaining its evidence for recovery.
+
+Enabling the setting before onboarding starts both duties at onboarding. Enabling it later
+creates any missing duties on the next verified conversation request, after rechecking the
+same saved channel. Replays reuse the original introduction and task keys. Chat preferences,
+provider text and a `paused=false` request cannot enable this installation setting.
+
+Disabling it makes existing scheduled duties block without provider reads, model calls,
+delivery or another schedule. Their saved progress and receipts remain intact; after an
+explicit re-enable, an already blocked duty requires native task resumption. Upgrades from
+0.4.1 with no explicit setting also default off. This does not delete historical provider data
+or claim retention/backup erasure. Requested upload and other conversation work remain separate.
+The setting is checked when a scheduled step is dispatched; it does not cancel a provider
+request already in flight or remove copies retained by an earlier scan.
+
+Merging the versioned source into `main` automatically publishes its GitHub agent release.
+Review and release approval are required before merging; a draft PR is not a runtime upgrade.

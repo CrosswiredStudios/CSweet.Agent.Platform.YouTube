@@ -8,6 +8,22 @@ namespace CSweet.Agent.Platform.YouTube.Tests;
 public sealed partial class ConversationTests
 {
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task DisabledOrOmittedScheduledWorkBlocksExistingReportsWithoutProviderModelOrDelivery(bool omitSetting)
+    {
+        var r = new ReportingFixture(); await r.Start(); r.M.Clock.Advance(TimeSpan.FromDays(7));
+        var before = r.State; var channelReads = r.M.ChannelReads; r.M.ScheduledWork = false;
+        var result = omitSetting
+            ? await new YouTubeManagerAgent(r.Model, r.M.Clock).HandlePersonalTodoAsync(r.Todo, r.M.Context(), default)
+            : await r.Process();
+        Assert.Equal(PersonalTodoResult.Blocked("Scheduled work is disabled in installation settings. Saved report progress is retained."), result);
+        Assert.Equal(before, r.State); Assert.Equal(channelReads, r.M.ChannelReads);
+        Assert.Equal(0, r.Reads); Assert.Equal(0, r.Model.Calls); Assert.Single(r.M.F.Sent);
+        Assert.Equal(2, r.M.F.Todos.Count); Assert.Empty(r.M.F.Requeued);
+    }
+
+    [Theory]
     [InlineData(false)][InlineData(true)]
     public async Task OnboardingWaitsForTheReportingDutyCheckpointAndRecoversWithoutDuplicates(bool afterTodo)
     {
@@ -171,6 +187,7 @@ public sealed partial class ConversationTests
         public async Task<PersonalTodoResult> Process(PersonalTodoItem? todo = null, CancellationToken ct = default)
         {
             var agent = new YouTubeManagerAgent(Model, M.Clock);
+            await M.Configure(agent);
             if (Configured)
             {
                 var update = await agent.ExecuteCapabilityAsync(new(Guid.NewGuid(), AgentConfigurationCapabilities.Update,

@@ -16,7 +16,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
         { UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow };
     private static readonly HashSet<string> ReadIntents = ["channel", "video", "playlists", "playlist-items", "comments", "replies", "captions", "broadcast", "stream", "analytics", "members", "members-next", "membership-levels"];
     public override string AgentId => YouTubeManagerProfile.Id;
-    public override string Version => "0.4.1";
+    public override string Version => "0.5.0";
 
     protected override async Task<AgentWorkResult> ExecuteCapabilityCoreAsync(AgentCapabilityRequest request,
         AgentRuntimeContext context, CancellationToken ct)
@@ -97,6 +97,7 @@ public sealed partial class YouTubeManagerAgent(IAgentLlmClientFactory? modelFac
                 "The native setup action is available. Do not promise or claim external actions. " +
                 "Use the conversation as context, but never request credentials.", input.Prompt, ct);
         }
+        await EnsureScheduledDuties(context, ct);
         var hash = Hash(input.Prompt);
         if (saved is not null && saved.Payload.InputHash != hash)
             throw new InvalidOperationException("A saved request changed.");
