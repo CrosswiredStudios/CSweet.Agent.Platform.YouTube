@@ -10,7 +10,7 @@
   },
   "id": "com.csweet.agent.platform.youtube",
   "name": "YouTube Manager",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "publisher": {
     "id": "com.csweet",
     "name": "C-Sweet"
@@ -31,7 +31,7 @@
   "provides": [
     {
       "name": "agent.configuration.describe.v1",
-      "description": "Describe the company's approved reasoning configuration for scheduled YouTube reports.",
+      "description": "Describe approved reasoning settings and the explicit opt-in for recurring YouTube work.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false
@@ -53,7 +53,7 @@
           },
           "agentVersion": {
             "type": "string",
-            "const": "0.4.1"
+            "const": "0.5.0"
           },
           "schemaVersion": {
             "type": "string",
@@ -61,8 +61,8 @@
           },
           "fields": {
             "type": "array",
-            "minItems": 4,
-            "maxItems": 4,
+            "minItems": 5,
+            "maxItems": 5,
             "items": {
               "type": "object",
               "additionalProperties": false,
@@ -79,7 +79,8 @@
                     "llmProviderId",
                     "llmModel",
                     "maxContextWindowTokens",
-                    "maxOutputTokens"
+                    "maxOutputTokens",
+                    "enableScheduledWork"
                   ]
                 },
                 "label": {
@@ -91,12 +92,12 @@
                   "enum": [
                     "llmProvider",
                     "llmModel",
-                    "number"
+                    "number",
+                    "boolean"
                   ]
                 },
                 "required": {
-                  "type": "boolean",
-                  "const": true
+                  "type": "boolean"
                 },
                 "description": {
                   "type": [
@@ -159,7 +160,8 @@
               "llmProviderId",
               "llmModel",
               "maxContextWindowTokens",
-              "maxOutputTokens"
+              "maxOutputTokens",
+              "enableScheduledWork"
             ],
             "properties": {
               "llmProviderId": {
@@ -177,6 +179,9 @@
               "maxOutputTokens": {
                 "type": "number",
                 "minimum": 2048
+              },
+              "enableScheduledWork": {
+                "type": "boolean"
               }
             }
           }
@@ -188,7 +193,7 @@
     },
     {
       "name": "agent.configuration.update.v1",
-      "description": "Update the approved reasoning configuration through native platform controls, not conversational preferences.",
+      "description": "Update approved reasoning settings and recurring-work opt-in through native platform controls.",
       "inputSchema": {
         "type": "object",
         "additionalProperties": false,
@@ -216,6 +221,9 @@
               "maxOutputTokens": {
                 "type": "number",
                 "minimum": 2048
+              },
+              "enableScheduledWork": {
+                "type": "boolean"
               }
             }
           }
@@ -247,7 +255,8 @@
               "llmProviderId",
               "llmModel",
               "maxContextWindowTokens",
-              "maxOutputTokens"
+              "maxOutputTokens",
+              "enableScheduledWork"
             ],
             "properties": {
               "llmProviderId": {
@@ -265,6 +274,9 @@
               "maxOutputTokens": {
                 "type": "number",
                 "minimum": 2048
+              },
+              "enableScheduledWork": {
+                "type": "boolean"
               }
             }
           }
@@ -672,14 +684,14 @@
       "key": "llmProviderId",
       "type": "provider",
       "label": "Reasoning service",
-      "required": true,
+      "required": false,
       "secret": false
     },
     {
       "key": "llmModel",
       "type": "model",
       "label": "Reasoning model",
-      "required": true,
+      "required": false,
       "secret": false
     },
     {
@@ -704,6 +716,15 @@
       "step": 1000,
       "defaultValue": 128000,
       "lessThanFieldKey": "maxContextWindowTokens"
+    },
+    {
+      "key": "enableScheduledWork",
+      "type": "boolean",
+      "label": "Enable recurring monitoring and reports",
+      "required": false,
+      "secret": false,
+      "description": "Create recurring comment checks and performance reports at onboarding or the next conversation request. Leave off for on-demand help and uploads; posting still needs separate approval.",
+      "defaultValue": false
     }
   ],
   "credentials": [],

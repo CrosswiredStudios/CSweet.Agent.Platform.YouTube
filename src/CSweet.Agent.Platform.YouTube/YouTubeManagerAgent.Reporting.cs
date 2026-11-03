@@ -19,8 +19,8 @@ public sealed partial class YouTubeManagerAgent
     public const int DefaultOutputTokens = 128_000;
     private const int MinimumOutputTokens = 2_048;
     protected override AgentConfigurationBuilder Configure(AgentConfigurationBuilder builder) => builder
-        .LlmProvider("llmProviderId", "Reasoning service", required: true, description: "Company-approved reasoning service for scheduled reports.")
-        .LlmModel("llmModel", "Reasoning model", "llmProviderId", required: true, description: "Company-approved model for scheduled analysis.")
+        .LlmProvider("llmProviderId", "Reasoning service", required: false, description: "Company-approved reasoning service for optional scheduled reports. Conversation uses its platform-selected service.")
+        .LlmModel("llmModel", "Reasoning model", "llmProviderId", required: false, description: "Company-approved model for optional scheduled analysis. Missing report configuration never selects a substitute.")
         .Number("maxContextWindowTokens", "Maximum context-window tokens", required: true,
             description: "Planning ceiling for YouTube Manager model requests; set this no higher than the selected model's real context window.",
             minimum: 32_769, step: 1_000,
@@ -29,7 +29,9 @@ public sealed partial class YouTubeManagerAgent
             description: "Budget for each YouTube Manager model response, including reasoning. Set this within the selected model and provider's supported limits.",
             minimum: MinimumOutputTokens, step: 1_000,
             defaultValue: DefaultOutputTokens,
-            lessThanFieldKey: "maxContextWindowTokens");
+            lessThanFieldKey: "maxContextWindowTokens")
+        .Boolean("enableScheduledWork", "Enable recurring monitoring and reports", defaultValue: false,
+            description: "Create recurring comment checks and performance reports at onboarding or the next conversation request. Leave off for on-demand help and uploads; posting still needs separate approval.");
 
     public static int ResolveOutputTokens(AgentSettings settings)
     {
@@ -69,6 +71,8 @@ public sealed partial class YouTubeManagerAgent
             saved.Payload.ConversationId != item.SourceConversationId || saved.Payload.IntroductionId != item.SourceMessageId ||
             saved.Payload.TodoId is { } todo && todo != item.Id)
             return PersonalTodoResult.Blocked("This reporting duty does not match its saved setup.");
+        if (!Settings.GetBoolean("enableScheduledWork", false))
+            return PersonalTodoResult.Blocked("Scheduled work is disabled in installation settings. Saved report progress is retained.");
         if (saved.Payload.TodoId is null) saved = await SaveReporting(saved.Payload with { TodoId = item.Id }, saved.Revision, context, ct);
         var preferences = await context.Platform.ReadOperatingStateAsync<Preferences>("youtube.preferences", ct);
         if (preferences?.Payload.Values.GetValueOrDefault("paused") == "true")

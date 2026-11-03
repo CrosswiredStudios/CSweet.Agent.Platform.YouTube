@@ -35,25 +35,50 @@ public sealed partial class YouTubeManagerAgent
         if (state.Payload.IntroductionId is null)
         {
             var intro = await context.Platform.Communication.SendMessageAsync(onboarded.ConversationId,
-                $"YouTube is connected to {PlainReviewText(channel.Items[0].Snippet.Title)}. I'll run the initial comment synchronization, " +
-                "then check again every 15 minutes after a scan finishes and send a daily change digest here. " +
-                "I'll also send a weekly report of official channel metrics and suggestions here. " +
-                "You can pause this work or change its cadence. Public changes still require approval. " +
+                $"YouTube is connected to {PlainReviewText(channel.Items[0].Snippet.Title)}. " +
+                (Settings.GetBoolean("enableScheduledWork", false)
+                    ? "Recurring work is enabled: I'll synchronize comments, check again every 15 minutes after a scan finishes, send a daily change digest and a weekly performance report here. You can pause this work or change its cadence. "
+                    : "Recurring comment monitoring and reports are off. You can ask for channel help or attach a video to prepare an upload. ") +
+                "Channel changes and uploads still require separate approval. " +
                 "What are your channel goals and preferred brand voice?",
                 $"youtube-monitor-introduction:{message.EventId:N}", ct);
             state = await SaveMonitoring(state.Payload with { IntroductionId = intro.Id }, state.Revision, context, ct);
         }
+        if (Settings.GetBoolean("enableScheduledWork", false)) await CreateScheduledDuties(state, context, ct);
+        var completed = await context.Platform.Lifecycle.CompleteOnboardingAsync(message, ct);
+        if (!completed.Completed) throw new InvalidOperationException("The platform did not acknowledge onboarding.");
+    }
+
+    private async Task CreateScheduledDuties(AgentOperatingState<YouTubeMonitoringState> state, AgentRuntimeContext context, CancellationToken ct)
+    {
         if (state.Payload.TodoId is null)
         {
             var todo = await context.Platform.PersonalTodo.AddAsync(new("Monitor YouTube engagement",
                 "Synchronize the bound channel and report meaningful changes using durable scheduled work. Never publish replies.",
-                "Normal", null, $"youtube-monitor:{context.InstallationId}", SourceConversationId: onboarded.ConversationId,
+                "Normal", null, $"youtube-monitor:{context.InstallationId}", SourceConversationId: state.Payload.ConversationId,
                 SourceMessageId: state.Payload.IntroductionId, CorrelationId: MonitoringKey), ct);
             state = await SaveMonitoring(state.Payload with { TodoId = todo.Id }, state.Revision, context, ct);
         }
         await StartReporting(state.Payload, context, ct);
-        var completed = await context.Platform.Lifecycle.CompleteOnboardingAsync(message, ct);
-        if (!completed.Completed) throw new InvalidOperationException("The platform did not acknowledge onboarding.");
+    }
+
+    // Native installation configuration is the opt-in. Message/provider text cannot enable it.
+    // Reconcile on a verified conversation request so opting in after onboarding also works.
+    private async Task EnsureScheduledDuties(AgentRuntimeContext context, CancellationToken ct)
+    {
+        if (!Settings.GetBoolean("enableScheduledWork", false)) return;
+        var state = await context.Platform.ReadOperatingStateAsync<YouTubeMonitoringState>(MonitoringKey, ct);
+        if (state is null) return;
+        if (state.Payload.OrganizationId.ToString("D") != context.BusinessId ||
+            state.Payload.EmployeeId.ToString("D") != context.Identity?.EmployeeId ||
+            state.Payload.IntroductionId is null || state.Payload.OnboardingEventId == Guid.Empty)
+            throw new InvalidOperationException("The saved onboarding belongs to a different setup.");
+        var report = await context.Platform.ReadOperatingStateAsync<YouTubeReportingState>(ReportingKey, ct);
+        if (state.Payload.TodoId is not null && report?.Payload.TodoId is not null) return;
+        var channel = await new YouTubeClient(context.Platform).ReadChannelAsync(ct);
+        if (channel.Items.Count != 1 || channel.NextPageToken is not null || channel.Items[0].Id != state.Payload.ChannelId)
+            throw new InvalidOperationException("The connected channel changed. Review the existing setup before enabling recurring work.");
+        await CreateScheduledDuties(state, context, ct);
     }
 
     private async Task<PersonalTodoResult> ProcessMonitoring(PersonalTodoItem item, AgentRuntimeContext context, CancellationToken ct)
@@ -68,6 +93,8 @@ public sealed partial class YouTubeManagerAgent
             saved.Payload.IntroductionId is null || saved.Payload.IntroductionId != item.SourceMessageId ||
             saved.Payload.TodoId is { } todoId && todoId != item.Id)
             return PersonalTodoResult.Blocked("The monitoring duty does not match its saved setup.");
+        if (!Settings.GetBoolean("enableScheduledWork", false))
+            return PersonalTodoResult.Blocked("Scheduled work is disabled in installation settings. Saved monitoring progress is retained.");
         if (saved.Payload.TodoId is null)
             saved = await SaveMonitoring(saved.Payload with { TodoId = item.Id }, saved.Revision, context, ct);
         var now = MonitoringNow;

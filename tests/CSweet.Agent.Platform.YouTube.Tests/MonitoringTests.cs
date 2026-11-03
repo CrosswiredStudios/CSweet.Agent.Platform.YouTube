@@ -7,6 +7,85 @@ namespace CSweet.Agent.Platform.YouTube.Tests;
 
 public sealed partial class ConversationTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task OnDemandOnboardingCompletesWithoutScheduledTasksOrProviderScans(bool omitSetting)
+    {
+        var m = new MonitoringFixture { ScheduledWork = false };
+        if (omitSetting)
+        {
+            await m.Agent().HandleEventAsync(m.Event, m.Context(), default);
+            await m.Agent().HandleEventAsync(m.Event, m.Context(), default);
+        }
+        else { await m.Start(); await m.Start(); }
+        Assert.Empty(m.F.Todos); Assert.Single(m.F.Sent); Assert.Single(m.Acknowledged);
+        Assert.Contains("monitoring and reports are off", m.F.Sent[0].Content);
+        Assert.DoesNotContain("youtube.reporting", m.F.States.Keys);
+        Assert.Null(m.State.TodoId); Assert.Equal(0, m.ThreadReads); Assert.Equal(0, m.F.Model.Calls);
+    }
+
+    [Fact]
+    public async Task ExplicitOptInAfterOnboardingCreatesBothDutiesOnceOnAVerifiedRequest()
+    {
+        var m = new MonitoringFixture { ScheduledWork = false }; await m.Start();
+        m.ScheduledWork = true;
+        var agent = await m.ConfiguredAgent();
+        var request = new AgentCapabilityRequest(Guid.NewGuid(), YouTubeManagerProfile.Assistant,
+            JsonSerializer.SerializeToElement(m.F.Input, JsonOptions));
+        Assert.True((await agent.ExecuteCapabilityAsync(request, m.Context(), default)).Succeeded);
+        Assert.True((await agent.ExecuteCapabilityAsync(request, m.Context(), default)).Succeeded);
+        Assert.Single(m.F.Todos, x => x.CorrelationId == "youtube.monitor");
+        Assert.Single(m.F.Todos, x => x.CorrelationId == "youtube.reporting");
+    }
+
+    [Theory]
+    [InlineData("youtube.monitor")]
+    [InlineData("youtube.reporting")]
+    public async Task LaterOptInRecoversALostDutyCheckpointWithoutDuplicateTasks(string key)
+    {
+        var m = new MonitoringFixture { ScheduledWork = false }; await m.Start(); m.ScheduledWork = true;
+        var agent = await m.ConfiguredAgent(); var failed = false;
+        m.F.FailStateWrite = r => !failed && r.StateKey == key &&
+            r.Payload.GetProperty("todoId").ValueKind == JsonValueKind.String && (failed = true);
+        var request = new AgentCapabilityRequest(Guid.NewGuid(), YouTubeManagerProfile.Assistant,
+            JsonSerializer.SerializeToElement(m.F.Input, JsonOptions));
+        Assert.False((await agent.ExecuteCapabilityAsync(request, m.Context(), default)).Succeeded);
+        Assert.True(failed); m.F.FailStateWrite = null;
+        Assert.True((await agent.ExecuteCapabilityAsync(request, m.Context(), default)).Succeeded);
+        Assert.Single(m.F.Todos, x => x.CorrelationId == "youtube.monitor");
+        Assert.Single(m.F.Todos, x => x.CorrelationId == "youtube.reporting");
+    }
+
+    [Fact]
+    public async Task OptInCannotCreateDutiesForChangedChannelOrForgedConversation()
+    {
+        var m = new MonitoringFixture { ScheduledWork = false }; await m.Start(); m.ScheduledWork = true;
+        var agent = await m.ConfiguredAgent();
+        var forged = m.F.Input with { MessageId = Guid.NewGuid() };
+        Assert.False((await agent.ExecuteCapabilityAsync(new(Guid.NewGuid(), YouTubeManagerProfile.Assistant,
+            JsonSerializer.SerializeToElement(forged, JsonOptions)), m.Context(), default)).Succeeded);
+        m.Channel = "different";
+        Assert.False((await agent.ExecuteCapabilityAsync(new(Guid.NewGuid(), YouTubeManagerProfile.Assistant,
+            JsonSerializer.SerializeToElement(m.F.Input, JsonOptions)), m.Context(), default)).Succeeded);
+        Assert.Empty(m.F.Todos); Assert.Single(m.F.Sent);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task DisablingOrOmittingScheduledWorkBlocksExistingMonitoringWithoutReadingOrRescheduling(bool omitSetting)
+    {
+        var m = new MonitoringFixture(); await m.Start(); var before = m.State;
+        var reads = m.ChannelReads; m.ScheduledWork = false;
+        var result = omitSetting
+            ? await m.Agent().HandlePersonalTodoAsync(m.F.Todos.Single(x => x.CorrelationId == "youtube.monitor"), m.Context(), default)
+            : await m.Process();
+        Assert.Equal(PersonalTodoResult.Blocked("Scheduled work is disabled in installation settings. Saved monitoring progress is retained."), result);
+        Assert.Equal(before, m.State); Assert.Equal(reads, m.ChannelReads); Assert.Equal(0, m.ThreadReads);
+        Assert.Equal(2, m.F.Todos.Count); Assert.Single(m.F.Sent); Assert.Empty(m.F.Requeued);
+    }
+
     [Fact]
     public async Task OnboardingVerifiesChannelCreatesBothDutiesAndAcknowledgesTheStableEventAfterPersistence()
     {
@@ -179,6 +258,7 @@ public sealed partial class ConversationTests
         public IReadOnlyList<CommentThread> Threads { get; set; } = [Thread("one", 0)];
         public PlatformCapabilityErrorCode? Failure { get; set; }
         public string Channel { get; set; } = "channel";
+        public bool ScheduledWork { get; set; } = true;
         public int ChannelReads { get; private set; }
         public int ThreadReads { get; private set; }
         public YouTubeMonitoringState State => F.States["youtube.monitor"].Payload.Deserialize<YouTubeMonitoringState>(JsonOptions)!;
@@ -198,17 +278,29 @@ public sealed partial class ConversationTests
             F.Runtime.RegisterCapability<CompleteAgentOnboardingRequest, CompleteAgentOnboardingResponse>(AgentLifecycleCapabilities.CompleteOnboarding, (r, _) =>
             {
                 Assert.Equal(Event.EventId, r.EventId); Assert.NotNull(State.IntroductionId);
-                Assert.Equal(F.Todos.Single(x => x.CorrelationId == "youtube.monitor").Id, State.TodoId);
-                Assert.Equal(F.Todos.Single(x => x.CorrelationId == "youtube.reporting").Id,
-                    F.States["youtube.reporting"].Payload.Deserialize<YouTubeReportingState>(JsonOptions)!.TodoId);
+                if (ScheduledWork)
+                {
+                    Assert.Equal(F.Todos.Single(x => x.CorrelationId == "youtube.monitor").Id, State.TodoId);
+                    Assert.Equal(F.Todos.Single(x => x.CorrelationId == "youtube.reporting").Id,
+                        F.States["youtube.reporting"].Payload.Deserialize<YouTubeReportingState>(JsonOptions)!.TodoId);
+                }
+                else { Assert.Empty(F.Todos); Assert.Null(State.TodoId); }
                 Acknowledged.Add(r.EventId);
                 return Task.FromResult(new CompleteAgentOnboardingResponse(true, Clock.GetUtcNow()));
             });
         }
         public YouTubeManagerAgent Agent() => new(F.Model, Clock);
         public AgentRuntimeContext Context() => F.Runtime.CreateContext(Organization.ToString("D"), identity: F.Context().Identity);
-        public Task Start() => Agent().HandleEventAsync(Event, Context(), default);
-        public Task<PersonalTodoResult> Process() => Agent().HandlePersonalTodoAsync(F.Todos.Single(x => x.CorrelationId == "youtube.monitor"), Context(), default);
+        public async Task Configure(YouTubeManagerAgent agent)
+        {
+            var result = await agent.ExecuteCapabilityAsync(new(Guid.NewGuid(), AgentConfigurationCapabilities.Update,
+                JsonSerializer.SerializeToElement(new UpdateAgentConfigurationRequest(new Dictionary<string, JsonElement>
+                { ["enableScheduledWork"] = JsonSerializer.SerializeToElement(ScheduledWork) }), JsonOptions)), Context(), default);
+            Assert.True(result.Succeeded);
+        }
+        public async Task<YouTubeManagerAgent> ConfiguredAgent() { var agent = Agent(); await Configure(agent); return agent; }
+        public async Task Start() => await (await ConfiguredAgent()).HandleEventAsync(Event, Context(), default);
+        public async Task<PersonalTodoResult> Process() => await (await ConfiguredAgent()).HandlePersonalTodoAsync(F.Todos.Single(x => x.CorrelationId == "youtube.monitor"), Context(), default);
         public void Preferences(Dictionary<string, string> values) => F.States["youtube.preferences"] = F.States["youtube.monitor"] with
         { StateKey = "youtube.preferences", Payload = JsonSerializer.SerializeToElement(new Preferences(values), JsonOptions) };
     }
