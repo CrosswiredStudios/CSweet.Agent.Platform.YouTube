@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
     paths:
+      - .github/workflows/agent-release.yml
+      - scripts/prepare-ci-dependencies.py
+      - scripts/test-ci-dependencies.py
+      - build/ci-dependencies.json
       - src/CSweet.Agent.Platform.YouTube/CSweet.Agent.Platform.YouTube.csproj
       - csweet-plugin.json
     tags: ['v*.*.*']
@@ -37,6 +41,14 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Verify CI dependency fallback
+        env:
+          CSWEET_RUN_DEPENDENCY_INTEGRATION: '1'
+        run: python3 scripts/test-ci-dependencies.py
+      - name: Prepare pinned C-Sweet dependencies
+        env:
+          CSWEET_DEPENDENCY_TOKEN: ${{ secrets.CSWEET_DEPENDENCY_READ_TOKEN }}
+        run: python3 scripts/prepare-ci-dependencies.py
       - name: Resolve version
         id: version
         shell: pwsh
@@ -96,3 +108,10 @@ jobs:
           if ($LASTEXITCODE -eq 0) { exit 0 }
           gh release create $env:RELEASE_TAG --repo '${{ github.repository }}' --target '${{ github.sha }}' --title "YouTube Manager $env:RELEASE_VERSION" --notes-file "releases/$env:RELEASE_VERSION.md" $env:BUNDLE "$env:BUNDLE.sha256"
           if ($LASTEXITCODE -ne 0) { throw "GitHub release creation failed." }
+      - name: Upload dependency provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-ci-dependencies
+          path: .artifacts/ci-dependencies/resolved.json
+          if-no-files-found: ignore

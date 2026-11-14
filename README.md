@@ -4,7 +4,7 @@ Conversational C-Sweet specialist for a company's YouTube channel. The agent use
 an explicitly bound YouTube connector; it never receives Google credentials or
 raw authenticated network access.
 
-Version 0.5.0 targets .NET 10, protocol 2.4, SDK 5.5.0 and the explicitly bound
+Version 0.5.1 targets .NET 10, protocol 2.4, SDK 5.5.0 and the explicitly bound
 `com.csweet.connector.youtube` dependency (`>=0.2.1 <0.3.0`). The typed client package is
 pinned to the publicly verified NuGet version `[0.2.1]`, avoiding approximate resolution
 of the unpublished 0.2.0 package.
@@ -248,3 +248,13 @@ request already in flight or remove copies retained by an earlier scan.
 
 Merging the versioned source into `main` automatically publishes its GitHub agent release.
 Review and release approval are required before merging; a draft PR is not a runtime upgrade.
+
+## CI dependency fallback
+
+GitHub Actions uses the pinned SDK and WorkManagement.Contracts versions from NuGet when available.
+An unpublished version is packed from its reviewed full commit in `build/ci-dependencies.json`.
+Update that commit pin together with any SDK or contracts dependency bump; CI rejects mismatched versions.
+Packages stay local to the job and are never pushed to NuGet. The job summary and dependency-provenance
+artifact record origins, source commits and SHA-256 hashes. Private source repositories require the optional
+`CSWEET_DEPENDENCY_READ_TOKEN` Actions secret with read access to the dependency repositories.
+Run `python3 scripts/test-ci-dependencies.py` for the offline resolver regression tests.

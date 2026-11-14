@@ -2,6 +2,7 @@ name: Agent verification
 on:
   pull_request:
     paths:
+      - build/ci-dependencies.json
       - 'src/**'
       - 'tests/**'
       - 'csweet-plugin.json'
@@ -21,6 +22,21 @@ jobs:
       - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
         with:
           dotnet-version: '10.0.x'
+      - name: Verify CI dependency fallback
+        env:
+          CSWEET_RUN_DEPENDENCY_INTEGRATION: '1'
+        run: python3 scripts/test-ci-dependencies.py
+      - name: Prepare pinned C-Sweet dependencies
+        env:
+          CSWEET_DEPENDENCY_TOKEN: ${{ secrets.CSWEET_DEPENDENCY_READ_TOKEN }}
+        run: python3 scripts/prepare-ci-dependencies.py
       - run: dotnet test CSweet.Agent.Platform.YouTube.slnx -c Release --logger 'trx;LogFileName=agent.trx' --results-directory artifacts/test-results
       - run: dotnet run --project src/CSweet.Agent.Platform.YouTube -c Release --no-build -- --self-test
       - run: dotnet pack src/CSweet.Agent.Platform.YouTube -c Release --no-build -o artifacts/package
+      - name: Upload dependency provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.job }}-ci-dependencies
+          path: .artifacts/ci-dependencies/resolved.json
+          if-no-files-found: ignore

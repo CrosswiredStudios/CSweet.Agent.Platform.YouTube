@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "packages": {
+    "CSweet.Agent.SDK": {
+      "5.5.0": {
+        "commit": "42eb77b4c36be919bc404af90b7c21f10b884d62"
+      }
+    },
+    "CSweet.WorkManagement.Contracts": {
+      "5.1.0": {
+        "commit": "04b2211b7092a7e94194d960d6c1f116e24a89f2"
+      }
+    }
+  }
+}

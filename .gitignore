@@ -409,3 +409,10 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Versioned agent release notes are source artifacts.
+!/releases/
+!/releases/*.md
+
+# Temporary CI dependency feeds, validation outputs and Python bytecode.
+/.artifacts/
