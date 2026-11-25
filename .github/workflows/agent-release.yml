@@ -48,7 +48,7 @@ jobs:
       - name: Prepare pinned C-Sweet dependencies
         env:
           CSWEET_DEPENDENCY_TOKEN: ${{ secrets.CSWEET_DEPENDENCY_READ_TOKEN }}
-        run: python3 scripts/prepare-ci-dependencies.py
+        run: python3 scripts/prepare-ci-dependencies.py --require-pins
       - name: Resolve version
         id: version
         shell: pwsh

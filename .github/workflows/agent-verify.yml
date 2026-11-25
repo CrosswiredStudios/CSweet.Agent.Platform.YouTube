@@ -29,7 +29,7 @@ jobs:
       - name: Prepare pinned C-Sweet dependencies
         env:
           CSWEET_DEPENDENCY_TOKEN: ${{ secrets.CSWEET_DEPENDENCY_READ_TOKEN }}
-        run: python3 scripts/prepare-ci-dependencies.py
+        run: python3 scripts/prepare-ci-dependencies.py --require-pins
       - run: dotnet test CSweet.Agent.Platform.YouTube.slnx -c Release --logger 'trx;LogFileName=agent.trx' --results-directory artifacts/test-results
       - run: dotnet run --project src/CSweet.Agent.Platform.YouTube -c Release --no-build -- --self-test
       - run: dotnet pack src/CSweet.Agent.Platform.YouTube -c Release --no-build -o artifacts/package
